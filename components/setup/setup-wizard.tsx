@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { Package, Clock, Printer, Truck, CheckCircle2 } from "lucide-react"
+import { Package, Clock, Printer, Truck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react"
 import type { Settings } from "@/lib/types"
 
 interface SetupWizardProps {
@@ -26,6 +26,7 @@ const STEPS = [
 export function SetupWizard({ open, onComplete }: SetupWizardProps) {
   const [step, setStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [settings, setSettings] = useState<Partial<Settings>>({
     storeName: "",
     primaryZoneName: "Manifest",
@@ -44,6 +45,8 @@ export function SetupWizard({ open, onComplete }: SetupWizardProps) {
   }
 
   const handleNext = async () => {
+    setError(null)
+    
     if (step < 5) {
       setStep(step + 1)
     } else {
@@ -57,9 +60,13 @@ export function SetupWizard({ open, onComplete }: SetupWizardProps) {
         })
         if (response.ok) {
           onComplete()
+        } else {
+          const data = await response.json().catch(() => ({}))
+          setError(data.error || `Failed to save (HTTP ${response.status})`)
         }
-      } catch (error) {
-        console.error('Failed to save settings:', error)
+      } catch (err) {
+        console.error('Failed to save settings:', err)
+        setError('Network error. Please check your connection and try again.')
       } finally {
         setIsSubmitting(false)
       }
@@ -286,12 +293,23 @@ export function SetupWizard({ open, onComplete }: SetupWizardProps) {
               </div>
             )}
 
+            {/* Error Display */}
+            {error && (
+              <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-4 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">Something went wrong</p>
+                  <p className="text-sm opacity-90">{error}</p>
+                </div>
+              </div>
+            )}
+
             {/* Navigation */}
             <div className="flex justify-between pt-4">
               <Button
                 variant="ghost"
                 onClick={handleBack}
-                disabled={step === 1}
+                disabled={step === 1 || isSubmitting}
               >
                 Back
               </Button>
@@ -299,6 +317,7 @@ export function SetupWizard({ open, onComplete }: SetupWizardProps) {
                 onClick={handleNext}
                 disabled={!canProceed() || isSubmitting}
               >
+                {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 {isSubmitting ? "Saving..." : step === 5 ? "Start Using ShipKit" : "Continue"}
               </Button>
             </div>
