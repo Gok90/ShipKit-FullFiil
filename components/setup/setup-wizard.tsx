@@ -11,7 +11,8 @@ import { Package, Clock, Printer, Truck, CheckCircle2 } from "lucide-react"
 import type { Settings } from "@/lib/types"
 
 interface SetupWizardProps {
-  onComplete: (settings: Partial<Settings>) => void
+  open: boolean
+  onComplete: () => void
 }
 
 const STEPS = [
@@ -22,8 +23,9 @@ const STEPS = [
   { id: 5, title: "Complete", icon: CheckCircle2 },
 ]
 
-export function SetupWizard({ onComplete }: SetupWizardProps) {
+export function SetupWizard({ open, onComplete }: SetupWizardProps) {
   const [step, setStep] = useState(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [settings, setSettings] = useState<Partial<Settings>>({
     storeName: "",
     primaryZoneName: "Manifest",
@@ -34,16 +36,33 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
     travelTimeMinutes: 15,
     printerFormat: "thermal_4x6",
   })
+  
+  if (!open) return null
 
   const updateSettings = (updates: Partial<Settings>) => {
     setSettings((prev) => ({ ...prev, ...updates }))
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 5) {
       setStep(step + 1)
     } else {
-      onComplete({ ...settings, setupComplete: true })
+      // Save settings to database
+      setIsSubmitting(true)
+      try {
+        const response = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...settings, setupComplete: true })
+        })
+        if (response.ok) {
+          onComplete()
+        }
+      } catch (error) {
+        console.error('Failed to save settings:', error)
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -278,9 +297,9 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
               </Button>
               <Button
                 onClick={handleNext}
-                disabled={!canProceed()}
+                disabled={!canProceed() || isSubmitting}
               >
-                {step === 5 ? "Start Using ShipKit" : "Continue"}
+                {isSubmitting ? "Saving..." : step === 5 ? "Start Using ShipKit" : "Continue"}
               </Button>
             </div>
           </CardContent>

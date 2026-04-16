@@ -158,7 +158,10 @@ export function AppShell() {
       {/* Setup Wizard */}
       <SetupWizard 
         open={showSetupWizard} 
-        onComplete={() => setShowSetupWizard(false)} 
+        onComplete={() => {
+          setShowSetupWizard(false)
+          refreshAll()
+        }} 
       />
     </div>
   )
