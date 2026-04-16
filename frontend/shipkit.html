@@ -686,10 +686,79 @@ body.picking-mode #pick-mode-btn {
    }
    
    function setPrinter(type) {
-     document.getElementById('printer-4x6-btn').style.background =
-       type === '4x6' ? 'var(--accent)' : '';
-     document.getElementById('printer-8x11-btn').style.background =
-       type === '8x11' ? 'var(--accent)' : '';
+     S.settings.printerFormat = type;
+     const btn4 = document.getElementById('printer-4x6-btn');
+     const btn8 = document.getElementById('printer-8x11-btn');
+     if (btn4) btn4.style.background =
+       type === '4x6'
+         ? 'linear-gradient(135deg,var(--accent),var(--secondary))'
+         : '';
+     if (btn8) btn8.style.background =
+       type === '8x11'
+         ? 'linear-gradient(135deg,var(--accent),var(--secondary))'
+         : '';
+     saveS('settings');
+     showToast('Printer format saved', 'success');
+   }
+   
+   // --- VARIANT ALIAS FUNCTIONS ---
+   function renderAliasPills() {
+     // AG will implement
+     const container = document.getElementById('alias-pills-container');
+     if (!container) return;
+     const aliases = S.settings.variantAliases || {};
+     const keys = Object.keys(aliases);
+     if (keys.length === 0) {
+       container.innerHTML = '<span style="font-size:12px;color:var(--muted);font-style:italic">No aliases yet — add one below</span>';
+       return;
+     }
+     container.innerHTML = keys.map(tikTok => {
+       const inv = aliases[tikTok];
+       return `<div style="display:inline-flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.25);border-radius:8px;">
+         <span style="color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace">${tikTok}</span>
+         <span style="color:var(--accent)">→</span>
+         <span style="color:var(--text);font-weight:600;font-size:12px">${inv}</span>
+         <button onclick="deleteAlias('${tikTok}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0 2px;font-size:14px;transition:color 0.2s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">&times;</button>
+       </div>`;
+     }).join('');
+   }
+
+   function addAlias() {
+     // AG will implement
+     const tikTokInput = document.getElementById('alias-tiktok-input');
+     const colorSelect = document.getElementById('alias-color-select');
+     if (!tikTokInput || !colorSelect) return;
+     const tikTok = tikTokInput.value.trim().toLowerCase();
+     const color = colorSelect.value;
+     if (!tikTok || !color) {
+       showToast('Enter TikTok name and select a color', 'warn');
+       return;
+     }
+     if (!S.settings.variantAliases) S.settings.variantAliases = {};
+     S.settings.variantAliases[tikTok] = color;
+     saveS('settings');
+     tikTokInput.value = '';
+     colorSelect.value = '';
+     renderAliasPills();
+     showToast('Alias added: ' + tikTok + ' → ' + color, 'success');
+   }
+
+   function deleteAlias(tikTokName) {
+     // AG will implement
+     if (!S.settings.variantAliases) return;
+     delete S.settings.variantAliases[tikTokName];
+     saveS('settings');
+     renderAliasPills();
+     showToast('Alias removed', 'success');
+   }
+
+   function populateAliasColorSelect() {
+     // AG will implement
+     const select = document.getElementById('alias-color-select');
+     if (!select) return;
+     const colors = S.colorOrder.length ? S.colorOrder : DEFAULT_COLORS;
+     select.innerHTML = '<option value="">Select color...</option>' +
+       colors.map(c => '<option value="' + c + '">' + c + '</option>').join('');
    }
    
    function speak(text) {
@@ -1615,6 +1684,26 @@ body.picking-mode #pick-mode-btn {
      } else {
        banner.style.display = 'none';
      }
+
+     const pillBadge = document.getElementById('sla-pill-badge');
+     if (pillBadge) {
+       const banner = document.getElementById('deadline-banner');
+       if (!banner || banner.style.display === 'none') {
+         pillBadge.className = 'badge badge-green';
+         pillBadge.textContent = 'Safe';
+         pillBadge.classList.remove('hidden');
+       } else {
+         const txt = banner.textContent || '';
+         if (txt.includes('URGENT') || txt.includes('OVERDUE')) {
+           pillBadge.className = 'badge badge-red';
+           pillBadge.textContent = 'Overdue';
+         } else {
+           pillBadge.className = 'badge badge-yellow';
+           pillBadge.textContent = 'Ship Today';
+         }
+         pillBadge.classList.remove('hidden');
+       }
+     }
    }
 
    function showModal(title, bodyHTML, buttons) {
@@ -1719,6 +1808,7 @@ body.picking-mode #pick-mode-btn {
      if (APP_STATE.trackingsToScan) APP_STATE.trackingsToScan.clear();
      saveS('inventory'); saveS('todayDelta'); saveS('held'); saveS('batches');
      updateScanUI(); renderInvTable(); updateInvBadge();
+     showCelebration(APP_STATE.scanned.length + ' packages shipped!');
    }
 
    function renderBatchCards() {
@@ -2230,6 +2320,15 @@ body.picking-mode #pick-mode-btn {
        if (!S.settings.carrierCloseTime) { S.settings = {...DEFAULT_SETTINGS}; await saveS('settings'); }
 
        switchTab('scan');
+
+       window.addEventListener('offline', () => {
+         const b = document.getElementById('offline-badge');
+         if (b) b.style.display = 'inline-block';
+       });
+       window.addEventListener('online', () => {
+         const b = document.getElementById('offline-badge');
+         if (b) b.style.display = 'none';
+       });
      } catch(e) {
        console.error('initApp failed:', e);
        document.getElementById('tab-content').innerHTML =
@@ -2286,12 +2385,16 @@ body.picking-mode #pick-mode-btn {
      const manifestScans = APP_STATE.scanned.filter(s => s.zone === S.settings.zoneNames.primary).length;
      const clerkScans = APP_STATE.scanned.filter(s => s.zone === S.settings.zoneNames.secondary).length;
      
+     const manifestComplete = manifestScans > 0 && manifestScans >= expected;
+     const manifestClass = manifestComplete ? 'pile-card complete' : manifestScans > 0 ? 'pile-card urgency-yellow' : 'pile-card';
+     const clerkClass = clerkScans > 0 ? 'pile-card urgency-green' : 'pile-card';
+
      getEl('pile-cards').innerHTML = `
-       <div class="card" style="flex:1; margin:0">
+       <div class="${manifestClass}" style="flex:1; margin:0">
          <div class="badge" style="margin-bottom:8px">${S.settings.zoneNames.primary}</div>
          <div style="font-size:24px; font-weight:700; color:${manifestScans === expected && expected > 0 ? 'var(--green)' : 'var(--text)'}">${manifestScans} / ${expected}</div>
        </div>
-       <div class="card" style="flex:1; margin:0">
+       <div class="${clerkClass}" style="flex:1; margin:0">
          <div class="badge" style="margin-bottom:8px">${S.settings.zoneNames.secondary}</div>
          <div style="font-size:24px; font-weight:700">${clerkScans}</div>
        </div>
@@ -2324,41 +2427,112 @@ body.picking-mode #pick-mode-btn {
      // 5. Hold Subpanel + Batch Cards
      renderHeldQueue();
      renderBatchCards();
+
+     const dp = document.getElementById('daily-progress-text');
+     if (dp) {
+       const todayShipped = S.batches
+         ? S.batches.filter(b => b.shippedAt &&
+             b.shippedAt.startsWith(new Date().toISOString().slice(0,10))
+           ).reduce((sum, b) => sum + (b.totalPackages || 0), 0)
+         : 0;
+       const pending = APP_STATE.trackingsToScan
+         ? APP_STATE.trackingsToScan.size - APP_STATE.scanned.length
+         : 0;
+       dp.textContent = 'Today: ' + todayShipped + ' shipped' +
+         (pending > 0 ? ' · ' + pending + ' pending' : '');
+     }
    }
 
    function openSettings() {
      document.getElementById('settings-modal').style.display = 'flex';
+     const zp = document.getElementById('settings-zone-primary');
+     const zs = document.getElementById('settings-zone-secondary');
+     if (zp) zp.value = (S.settings.zoneNames && 
+       S.settings.zoneNames.primary) || 'Manifest';
+     if (zs) zs.value = (S.settings.zoneNames && 
+       S.settings.zoneNames.secondary) || 'Clerk Counter';
+
+     const fmt = S.settings.printerFormat || '4x6';
+     setPrinter(fmt);
+     
+     // Populate alias UI
+     populateAliasColorSelect();
+     renderAliasPills();
+   }
+
+   function closeSettingsModal() {
+     const zp = document.getElementById('settings-zone-primary');
+     const zs = document.getElementById('settings-zone-secondary');
+     if (zp && zp.value.trim())
+       S.settings.zoneNames = S.settings.zoneNames || {};
+     if (zp && zp.value.trim())
+       S.settings.zoneNames.primary = zp.value.trim();
+     if (zs && zs.value.trim())
+       S.settings.zoneNames.secondary = zs.value.trim();
+     saveS('settings');
+     document.getElementById('settings-modal').style.display='none';
    }
 
    document.addEventListener('DOMContentLoaded', initApp);
    </script>
 
    <div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-     <div class="card" style="width:400px; padding:20px; background:var(--bg);">
-       <h2 style="margin-top:0">Settings</h2>
+     <div class="card" style="max-width:560px; width:90%; padding:24px; background:var(--bg); max-height:85vh; overflow-y:auto;">
+       <!-- Header with close X -->
+       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+         <h2 style="margin:0; font-size:20px;">Settings</h2>
+         <button onclick="closeSettingsModal()" style="background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; padding:4px 8px; border-radius:4px; transition:color 0.2s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">&times;</button>
+       </div>
        
        <!-- Printer Format -->
-       <div style="margin-bottom:14px">
-         <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">LABEL FORMAT</label>
+       <div style="margin-bottom:18px">
+         <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:8px;letter-spacing:0.5px">LABEL FORMAT</label>
          <div style="display:flex;gap:8px">
            <button id="printer-4x6-btn" onclick="setPrinter('4x6')" class="btn" style="flex:1;font-size:12px">4×6 Thermal</button>
            <button id="printer-8x11-btn" onclick="setPrinter('8x11')" class="btn" style="flex:1;font-size:12px">8.5×11 Standard</button>
          </div>
        </div>
        
-       <!-- Primary Zone Name -->
-       <div style="margin-bottom:14px">
-         <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">PRIMARY ZONE NAME</label>
-         <input type="text" id="settings-zone-primary" placeholder="e.g. Manifest" style="width:100%">
+       <!-- Zone Names - Side by Side -->
+       <div style="display:flex; gap:12px; margin-bottom:18px;">
+         <div style="flex:1">
+           <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:8px;letter-spacing:0.5px">PRIMARY ZONE NAME</label>
+           <input type="text" id="settings-zone-primary" placeholder="e.g. Manifest" style="width:100%">
+         </div>
+         <div style="flex:1">
+           <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:8px;letter-spacing:0.5px">SECONDARY ZONE NAME</label>
+           <input type="text" id="settings-zone-secondary" placeholder="e.g. Clerk Counter" style="width:100%">
+         </div>
        </div>
        
-       <!-- Secondary Zone Name -->
-       <div style="margin-bottom:14px">
-         <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">SECONDARY ZONE NAME</label>
-         <input type="text" id="settings-zone-secondary" placeholder="e.g. Clerk Counter" style="width:100%">
+       <!-- Divider -->
+       <div style="border-top:1px solid var(--border); margin:20px 0;"></div>
+       
+       <!-- VARIANT ALIASES Section -->
+       <div style="margin-bottom:18px">
+         <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;letter-spacing:0.5px">VARIANT ALIASES</label>
+         <p style="font-size:11px;color:var(--muted);margin-bottom:12px;opacity:0.8">Map TikTok names → your inventory names</p>
+         
+         <!-- Alias Pills Container -->
+         <div id="alias-pills-container" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; min-height:36px;">
+           <span style="font-size:12px;color:var(--muted);font-style:italic">No aliases yet — add one below</span>
+         </div>
+         
+         <!-- Add Alias Form -->
+         <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+           <input type="text" id="alias-tiktok-input" placeholder="TikTok variant name..." style="flex:1; font-size:12px;">
+           <select id="alias-color-select" style="flex:1; font-size:12px;">
+             <option value="">Select color...</option>
+           </select>
+           <button class="btn btn-accent" onclick="addAlias()" style="padding:8px 14px; font-size:12px; flex-shrink:0;">+ Add</button>
+         </div>
+         
+         <!-- Helper text -->
+         <p style="font-size:10px;color:var(--muted);margin:0;opacity:0.7">TikTok names are case-insensitive. Example: 'charcoal' matches 'Charcoal, 4pk' in your CSV</p>
        </div>
        
-       <button class="btn" style="width:100%; margin-top:20px;" onclick="document.getElementById('settings-modal').style.display='none'">Close</button>
+       <!-- Save & Close Button -->
+       <button class="btn btn-accent" style="width:100%; margin-top:16px; padding:12px;" onclick="closeSettingsModal()">Save & Close</button>
      </div>
    </div>
    <div id="celebration-overlay">
