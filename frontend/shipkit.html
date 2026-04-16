@@ -17,6 +17,7 @@
   --border: #5a4a7a;
   --accent: #5ce0d0;
   --secondary: #a78bfa;
+  --teal-accent: #3fc5e7;
   --green: #10b981;
   --yellow: #f59e0b;
   --red: #ef4444;
@@ -558,6 +559,19 @@ body.picking-mode #pick-mode-btn {
   background-clip: text;
   text-align: center;
 }
+
+/* Teal accent on step window outlines and titles */
+.step { border-color: rgba(63, 197, 231, 0.25); }
+.step:hover { border-color: rgba(63, 197, 231, 0.5); }
+.step-header b { color: #3fc5e7; }
+#pick-list-sec { border-color: rgba(63, 197, 231, 0.25); }
+#pick-list-sec:hover { border-color: rgba(63, 197, 231, 0.5); }
+#pick-list-sec .pick-title { color: #3fc5e7; }
+
+.step-header.collapsed #print-chevron,
+.step-header.collapsed #slips-chevron {
+  transform: rotate(-90deg);
+}
 </style>
 </head>
 <body>
@@ -594,7 +608,7 @@ body.picking-mode #pick-mode-btn {
    const S = {
      inventory: [], colorOrder: [], batches: [], held: [],
      sessions: [], shippedT: new Set(), settings: {}, todayDelta: {}, returns: [],
-     labelFiles: [], csvOrders: [], uspsSlips: [], session: {},
+     labelFiles: [], csvFiles: [], csvOrders: [], uspsSlips: [], session: {},
      printedFileNames: new Set(), slipPrintedNames: new Set()
    };
 
@@ -650,12 +664,25 @@ body.picking-mode #pick-mode-btn {
    }
 
    const DEFAULT_COLORS = ['Black','White','Gray','Navy','Red','Royal Blue','Forest Green','Burgundy','Purple','Pink','Orange','Yellow','Brown','Tan','Teal','Coral'];
-   const DEFAULT_PACKS = ['2pk','4pk','4pk NL'];
+   const DEFAULT_PACKS = ['2 Pack', '4 Pack', '4 Pack No Lanyard'];
    const DEFAULT_SETTINGS = {
      carrierCloseTime:'17:00', travelMinutes:30,
      zoneNames:{primary:'Sort Zone 1', secondary:'Clerk Counter'},
-     lowThreshold:10, packOrder:['2pk','4pk','4pk NL'],
-     volume:80, proMode:false
+     lowThreshold:10, packOrder:['2 Pack', '4 Pack', '4 Pack No Lanyard'],
+     volume:80, proMode:false,
+     variantAliases:{
+       'metallic red':  'Metallic Red',
+       'dark blue':     'Dark Blue',
+       'hot pink':      'Hot Pink',
+       'royal blue':    'Royal Blue',
+       'charcoal':      'Charcoal',
+       'dark gray':     'Charcoal',
+       'dark grey':     'Charcoal',
+       'forest green':  'Forest Green',
+       'electric blue': 'Blue',
+       'navy blue':     'Navy',
+       'metallic gold': 'Gold'
+     }
    };
 
    // --- UTILS ---
@@ -815,8 +842,10 @@ body.picking-mode #pick-mode-btn {
 
        <!-- Step 2: Print Labels -->
        <div class="step active" id="step-print-card">
-         <div class="step-header" onclick="getEl('print-body').classList.toggle('hidden')">
-           <div class="step-num">2</div><b style="font-size:16px;flex:1">Print Labels & Packing Slips</b>
+         <div class="step-header" onclick="getEl('print-body').classList.toggle('hidden');this.classList.toggle('collapsed')">
+           <span id="print-chevron" style="color:#3fc5e7;font-size:11px;margin-right:4px;transition:transform 0.2s">▼</span>
+           <div class="step-num">2</div>
+           <b style="font-size:16px;flex:1">Print Labels & Packing Slips</b>
            <span id="print-badge" class="badge hidden"></span>
          </div>
          <div class="step-body" id="print-body">
@@ -826,15 +855,14 @@ body.picking-mode #pick-mode-btn {
 
        <!-- Pick List [NEW DYNAMIC] -->
        <div class="card hidden" id="pick-list-sec">
-         <div class="flex justify-between align-center" style="margin-bottom:8px">
-           <div style="display:flex;align-items:center;gap:12px">
-             <b style="font-size:15px">Pick List</b>
-             <button class="btn btn-accent" id="pick-mode-btn" onclick="togglePickMode()" style="padding:4px 10px;font-size:12px;border-radius:4px">Enter Picking Mode 🔍</button>
-           </div>
-           <button class="btn" onclick="togglePickListVis()" id="pick-toggle-btn" style="padding:2px 8px;font-size:11px">Collapse</button>
+         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer" onclick="togglePickList()">
+           <span id="pick-list-chevron" style="color:#3fc5e7;font-size:13px;transition:transform 0.2s;display:inline-block">▼</span>
+           <b class="pick-title" style="font-size:15px;flex:1">Pick List</b>
+           <span id="pick-list-summary" style="font-size:11px;color:var(--muted)"></span>
+           <span id="pick-header-counter" style="font-size:12px;color:var(--muted);display:none"></span>
+           <button class="btn" id="pick-mode-btn" style="padding:4px 12px;font-size:12px" onclick="event.stopPropagation();togglePickingMode()">Picking Mode</button>
          </div>
          <div id="pick-list-wrap">
-           <div id="pick-list-summary" style="font-size:12px;color:var(--muted);margin-bottom:12px"></div>
            <div id="pick-groups" style="display:grid;gap:8px"></div>
          </div>
        </div>
@@ -872,8 +900,11 @@ body.picking-mode #pick-mode-btn {
 
        <!-- Step 4: Print USPS Slips -->
        <div class="step" id="step-slips-card">
-         <div class="step-header" onclick="getEl('slips-body').classList.toggle('hidden')">
-           <div class="step-num">4</div><b style="font-size:16px;flex:1">Print USPS Slips</b>
+         <div class="step-header" onclick="getEl('slips-body').classList.toggle('hidden');this.classList.toggle('collapsed')">
+           <span id="slips-chevron" style="color:#3fc5e7;font-size:11px;margin-right:4px;transition:transform 0.2s">▼</span>
+           <div class="step-num">4</div>
+           <b style="font-size:16px;flex:1">Print USPS Slips</b>
+           <span id="slips-badge" class="badge hidden"></span>
          </div>
          <div class="step-body" id="slips-body">
            <div id="slips-list" class="flex flex-col gap-2"><i style="color:var(--muted)">No USPS slips uploaded yet</i></div>
@@ -912,9 +943,14 @@ body.picking-mode #pick-mode-btn {
      return `
        <div class="flex justify-between align-center" style="margin-bottom:16px; font-size:13px; color:var(--muted)">
          <span id="inv-stats-bar">Total Units: 0 &middot; SKUs In Stock: 0 &middot; Low Stock: 0 &middot; Out of Stock: 0</span>
-         <div class="flex gap-2">
-            <button class="btn" onclick="invAction('all')">Apply to All</button>
-            <button class="btn" onclick="invAction('selected')">Apply to Selected</button>
+         <div class="flex gap-2" style="align-items:center">
+            <input type="number" id="bulk-qty-input" min="0" placeholder="qty"
+              style="width:64px;padding:6px 8px;font-size:13px;
+              background:var(--surface2);border:1px solid var(--border);
+              border-radius:8px;color:var(--text);text-align:center"
+              onkeydown="if(event.key==='Enter')applyToAll()">
+            <button class="btn" onclick="applyToAll()">Apply to All</button>
+            <button class="btn" onclick="applyToSelected()">Apply to Selected</button>
          </div>
        </div>
        <div class="card" style="padding:0; overflow:hidden;">
@@ -1059,7 +1095,7 @@ body.picking-mode #pick-mode-btn {
 
        if (lowerName.endsWith('.csv')) {
          const txt = new TextDecoder().decode(buf);
-         parseCSV(txt);
+         parseCSV(txt, f.name);
          API.uploadFile(f);
          APP_STATE.csvLoaded = true;
          updateScanUI();
@@ -1074,7 +1110,31 @@ body.picking-mode #pick-mode-btn {
          if (isSlip) {
            const bufCopy = buf.slice(0);
            if (!S.uspsSlips) S.uspsSlips = [];
-           S.uspsSlips.push({name: f.name, data: bufCopy, savedAt: Date.now()});
+           
+           // Extract package count from slip PDF text
+           let slipPackageCount = 0;
+           try {
+             const slipPdf = await pdfjsLib.getDocument({data: buf.slice(0)}).promise;
+             let slipText = '';
+             for (let p = 1; p <= slipPdf.numPages; p++) {
+               const pg = await slipPdf.getPage(p);
+               const tc = await pg.getTextContent();
+               slipText += tc.items.map(i => i.str).join(' ');
+             }
+             // Match "USPS Ground Advantage  5" or "Total  34" patterns
+             const gaMatch = slipText.match(/Ground Advantage[™\s]+(\d+)/i);
+             const totalMatch = slipText.match(/Total\s+(\d+)/i);
+             if (gaMatch) slipPackageCount = parseInt(gaMatch[1]);
+             else if (totalMatch) slipPackageCount = parseInt(totalMatch[1]);
+           } catch(e) { slipPackageCount = 0; }
+
+           S.uspsSlips.push({
+             name: f.name,
+             data: bufCopy,
+             packageCount: slipPackageCount,
+             savedAt: Date.now()
+           });
+           
            API.uploadFile(f);
            APP_STATE.slipsLoaded = true;
            // Unhide slip print section
@@ -1097,7 +1157,7 @@ body.picking-mode #pick-mode-btn {
      updateScanUI();
    }
 
-   function parseCSV(csvText) {
+   function parseCSV(csvText, filename) {
      const lines = csvText.split('\n').map(l => l.trim()).filter(l => l);
      if (lines.length < 2) return;
 
@@ -1132,8 +1192,8 @@ body.picking-mode #pick-mode-btn {
      console.log('[ShipKit CSV] headers:', headers);
      console.log('[ShipKit CSV] tracking col:', trkCol, '| variant col:', varCol, '| date col:', dateCol);
 
-     APP_STATE.variantsToPick = {};
-     APP_STATE.csvOrders = [];
+     if (!APP_STATE.variantsToPick) APP_STATE.variantsToPick = {};
+     if (!APP_STATE.csvOrders) APP_STATE.csvOrders = [];
 
      for (let i = 1; i < lines.length; i++) {
        const cols = parseCSVLine(lines[i]);
@@ -1145,6 +1205,19 @@ body.picking-mode #pick-mode-btn {
        }
        if (t) APP_STATE.csvOrders.push({tracking: t, variant: v, orderDate: d});
      }
+
+     // Store per-file metadata
+     const fileOrders = APP_STATE.csvOrders.filter(
+       o => !S.csvFiles.some(cf =>
+         cf.orders && cf.orders.some(fo => fo.tracking === o.tracking)
+       )
+     );
+     if (!S.csvFiles) S.csvFiles = [];
+     S.csvFiles.push({
+       name: filename || 'manifest.csv',
+       orderCount: fileOrders.length,
+       savedAt: Date.now()
+     });
 
      if (!APP_STATE.trackingsToScan) APP_STATE.trackingsToScan = new Set();
      APP_STATE.csvOrders.forEach(o => { if (o.tracking) APP_STATE.trackingsToScan.add(o.tracking); });
@@ -1191,7 +1264,9 @@ body.picking-mode #pick-mode-btn {
     const s = str.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
     const sLow = s.toLowerCase();
 
-    const ALIASES = {
+    const settingsAliases = (S && S.settings && 
+      S.settings.variantAliases) ? S.settings.variantAliases : {};
+    const ALIASES = Object.assign({
       'metallic red':  'Metallic Red',
       'dark blue':     'Dark Blue',
       'hot pink':      'Hot Pink',
@@ -1201,8 +1276,9 @@ body.picking-mode #pick-mode-btn {
       'dark grey':     'Charcoal',
       'forest green':  'Forest Green',
       'electric blue': 'Blue',
-      'navy blue':     'Navy'
-    };
+      'navy blue':     'Navy',
+      'metallic gold': 'Gold'
+    }, settingsAliases);
 
     const COLORS = [
       'Metallic Red','Dark Blue','Hot Pink','Forest Green',
@@ -1362,6 +1438,30 @@ body.picking-mode #pick-mode-btn {
      const btn = document.getElementById('pick-toggle-btn');
      if (wrap.style.display === 'none') { wrap.style.display = 'block'; btn.innerText = 'Collapse'; }
      else { wrap.style.display = 'none'; btn.innerText = 'Expand'; }
+   }
+
+   function togglePickList() {
+     const wrap = document.getElementById('pick-list-wrap');
+     const chevron = document.getElementById('pick-list-chevron');
+     if (wrap.style.display === 'none') {
+       wrap.style.display = 'block';
+       if (chevron) chevron.style.transform = 'rotate(0deg)';
+     } else {
+       wrap.style.display = 'none';
+       if (chevron) chevron.style.transform = 'rotate(-90deg)';
+     }
+   }
+
+   function togglePickingMode() {
+     document.body.classList.toggle('picking-mode');
+     const btn = document.getElementById('pick-mode-btn');
+     if (btn) {
+       if (document.body.classList.contains('picking-mode')) {
+         btn.textContent = 'Exit Picking Mode';
+       } else {
+         btn.textContent = 'Picking Mode';
+       }
+     }
    }
 
    function togglePickChk(el, stKey) {
@@ -1535,9 +1635,13 @@ body.picking-mode #pick-mode-btn {
      if (db2) db2.style.display = 'none';
      const sl = document.getElementById('scan-log');
      if (sl) sl.innerHTML = '<i style="color:var(--muted)">No packages scanned yet</i>';
+     S.labelFiles = [];
+     S.uspsSlips = [];
+     S.csvFiles = [];
      APP_STATE.trackingsToScan.clear();
      APP_STATE.scanned = [];
      APP_STATE.variantsToPick = {};
+     APP_STATE.csvOrders = [];
      APP_STATE.csvLoaded = false;
      APP_STATE.labelsLoaded = false;
      APP_STATE.slipsLoaded = false;
@@ -2043,6 +2147,28 @@ body.picking-mode #pick-mode-btn {
    }
    
    // --- INVENTORY LOGIC ---
+   function applyToAll() {
+     const bulkInput = document.getElementById('bulk-qty-input');
+     const n = bulkInput ? parseInt(bulkInput.value) : NaN;
+     if (isNaN(n) || n < 0) { showToast('Enter a quantity first', 'warn'); return; }
+     S.inventory.forEach(inv => { inv.stock = n; });
+     saveS('inventory'); renderInvTable(); updateInvBadge();
+     showToast('All SKUs set to ' + n, 'success');
+   }
+
+   function applyToSelected() {
+     const bulkInput = document.getElementById('bulk-qty-input');
+     const n = bulkInput ? parseInt(bulkInput.value) : NaN;
+     if (isNaN(n) || n < 0) { showToast('Enter a quantity first', 'warn'); return; }
+     const checked = [...document.querySelectorAll('.inv-chk:checked')].map(cb => cb.value);
+     if (!checked.length) { showToast('Select rows first', 'warn'); return; }
+     S.inventory.forEach(inv => {
+       if (checked.includes(inv.color + '|' + inv.pack)) inv.stock = n;
+     });
+     saveS('inventory'); renderInvTable(); updateInvBadge();
+     showToast(checked.length + ' SKUs set to ' + n, 'success');
+   }
+
    function invAction(type) {
      const chks = type === 'selected' ? [...document.querySelectorAll('.inv-chk:checked')] : [];
      const keys = type === 'selected' ? chks.map(c => c.value) : S.inventory.map(i => i.color+'|'+i.pack);
@@ -2067,6 +2193,16 @@ body.picking-mode #pick-mode-btn {
      saveS('inventory');
      renderInvTable();
      updateInvBadge();
+   }
+
+   function setStockFromInput(color, pack, val) {
+     const n = parseInt(val);
+     if (isNaN(n) || n < 0) {
+       showToast('Enter a valid number', 'warn');
+       return;
+     }
+     updateStock(color, pack, n, true);
+     showToast(color + ' ' + pack + ' set to ' + n, 'success');
    }
 
    function quickAddStock(color, pack, inputId) {
@@ -2114,7 +2250,7 @@ body.picking-mode #pick-mode-btn {
        html += `
          <tbody data-color="${color}">
            <tr class="inv-group-header">
-             <td colspan="7"><span class="drag-handle">⠿</span> <b>${color}</b></td>
+             <td colspan="6"><span class="drag-handle">⠿</span> <b>${color}</b></td>
            </tr>
        `;
        items.forEach((it, iIdx) => {
@@ -2122,6 +2258,7 @@ body.picking-mode #pick-mode-btn {
          const dtId = `stk-${gIdx}-${iIdx}`;
          const badg = it.stock === 0 ? '<span class="badge badge-red">OUT</span>' : (it.stock <= S.settings.lowThreshold ? '<span class="badge badge-yellow">LOW</span>' : '');
          const delta = S.todayDelta[k] ? `<span class="badge badge-amber">${S.todayDelta[k] > 0 ? '+'+S.todayDelta[k] : S.todayDelta[k]}</span>` : '';
+          const safeId = (color + '-' + it.pack).replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\-]/g, '');
          html += `
            <tr class="inv-row">
              <td style="width:30px"><input type="checkbox" class="inv-chk" value="${k}"></td>
@@ -2132,11 +2269,7 @@ body.picking-mode #pick-mode-btn {
                <span class="stock-num" id="${dtId}" onclick="startEditStock('${color}','${it.pack}', '${dtId}')">${it.stock}</span>
                <button class="qty-btn" onclick="updateStock('${color}','${it.pack}', 1)">+</button>
              </td>
-             <td style="width:140px; white-space:nowrap">
-               <input type="number" id="qa-${dtId}" style="width:60px;height:28px" placeholder="qty">
-               <button class="btn" style="padding:4px 8px" onclick="quickAddStock('${color}','${it.pack}', 'qa-${dtId}')">Add</button>
-             </td>
-             <td style="width:60px">${delta}</td>
+                          <td style="width:60px">${delta}</td>
              <td style="text-align:right">${badg}</td>
            </tr>
          `;
@@ -2318,6 +2451,10 @@ body.picking-mode #pick-mode-btn {
        }
        if (!S.colorOrder.length) { S.colorOrder = [...DEFAULT_COLORS]; await saveS('colorOrder'); }
        if (!S.settings.carrierCloseTime) { S.settings = {...DEFAULT_SETTINGS}; await saveS('settings'); }
+       if (!S.settings.variantAliases) {
+         S.settings.variantAliases = {...DEFAULT_SETTINGS.variantAliases};
+         await saveS('settings');
+       }
 
        switchTab('scan');
 
@@ -2347,18 +2484,54 @@ body.picking-mode #pick-mode-btn {
      
      // 1. Upload section & Checklists
      let checks = '';
-     if (APP_STATE.labelsLoaded || APP_STATE.slipsLoaded) {
-       checks += `<div class="pill">
-         <span>📄 Labels / Slips Loaded</span>
-         <span class="badge badge-green">${S.labelFiles ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0), 0) : 0} Trackings</span>
-       </div>`;
+
+     // Labels pill
+     if (APP_STATE.labelsLoaded) {
+       const labelTrackings = S.labelFiles
+         ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0),0)
+         : 0;
+       checks += '<div class="pill"><span>📄 Labels Loaded</span>' +
+         '<span class="badge badge-green">' + labelTrackings + ' trackings</span></div>';
      }
-     if (APP_STATE.csvLoaded) {
-       checks += `<div class="pill">
-         <span>📊 Manifest CSV Loaded</span>
-         <span class="badge badge-green">Ready</span>
-         <span id="sla-pill-badge" class="badge hidden"></span>
-       </div>`;
+
+     // CSV pills — one per file
+     if (APP_STATE.csvLoaded && S.csvFiles && S.csvFiles.length) {
+       const totalOrders = S.csvFiles.reduce((a,cf)=>a+cf.orderCount,0);
+       checks += '<div class="pill"><span>📋 Manifest CSV' +
+         (S.csvFiles.length > 1 ? 's (' + S.csvFiles.length + ' files)' : ' Loaded') +
+         '</span>' +
+         '<span class="badge badge-green">' + totalOrders + ' orders total</span>' +
+         '<span id="sla-pill-badge" class="badge hidden"></span></div>';
+       if (S.csvFiles.length > 1) {
+         S.csvFiles.forEach(cf => {
+           checks += '<div class="pill" style="margin-left:16px;opacity:0.8">' +
+             '<span style="font-size:11px">↳ ' + cf.name + '</span>' +
+             '<span class="badge badge-green" style="font-size:10px">' +
+             cf.orderCount + ' orders</span></div>';
+         });
+       }
+     } else if (APP_STATE.csvLoaded) {
+       const csvCount = APP_STATE.csvOrders ? APP_STATE.csvOrders.length : 0;
+       checks += '<div class="pill"><span>📋 Manifest CSV Loaded</span>' +
+         '<span class="badge badge-green">' + csvCount + ' orders</span>' +
+         '<span id="sla-pill-badge" class="badge hidden"></span></div>';
+     }
+
+     // USPS Slips pill
+     if (APP_STATE.slipsLoaded && S.uspsSlips && S.uspsSlips.length) {
+       const totalPkgs = S.uspsSlips.reduce((a,s)=>a+(s.packageCount||0),0);
+       checks += '<div class="pill"><span>📦 USPS Slips (' +
+         S.uspsSlips.length + ' files)</span>' +
+         '<span class="badge badge-green">' +
+         (totalPkgs > 0 ? totalPkgs + ' packages' : S.uspsSlips.length + ' slips') +
+         '</span></div>';
+       S.uspsSlips.forEach(slip => {
+         checks += '<div class="pill" style="margin-left:16px;opacity:0.8">' +
+           '<span style="font-size:11px">↳ ' + slip.name + '</span>' +
+           (slip.packageCount ? '<span class="badge badge-green" style="font-size:10px">' +
+             slip.packageCount + ' pkgs</span>' : '') +
+           '</div>';
+       });
      }
      getEl('file-checklists').innerHTML = checks;
      
