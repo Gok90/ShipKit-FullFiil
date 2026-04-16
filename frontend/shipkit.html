@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShipKit - Fulfillment Operations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5ce0d0;
+            --secondary: #a78bfa;
+            --surface-dark: #0f0a1a;
+            --surface-mid: #1a1230;
+            --surface-light: #2d1f42;
+            --surface-lighter: #3d2d52;
+            --border: #5a4a7a;
+            --text-primary: #ffffff;
+            --text-secondary: #b8a7d0;
+        }
+        
+        * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background: var(--surface-dark); 
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+        .monospace { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Glassmorphism cards */
+        .card {
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            background: rgba(45, 31, 66, 0.4);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Gradient text for steps */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Step badges */
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--surface-dark);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .step-badge.inactive {
+            background: var(--surface-lighter);
+            color: var(--text-secondary);
+        }
+        
+        .step-badge.complete {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        /* Button styles */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background: var(--surface-light);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            border-color: var(--primary);
+            background: var(--surface-lighter);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: var(--surface-dark);
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            border: none;
+            color: white;
+        }
+        
+        /* Tab navigation */
+        .tab-nav {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        /* Urgency states */
+        .urgency-green { color: #10b981; background: rgba(16, 185, 129, 0.1); }
+        .urgency-yellow { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+        .urgency-red { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        
+        /* Pile cards */
+        .pile-card {
+            position: relative;
+            border: 2px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            background: var(--surface-light);
+            transition: all 0.3s;
+        }
+        
+        .pile-card.complete {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .pile-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(92, 224, 208, 0.2);
+        }
+        
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            animation: slideIn 0.3s ease;
+            z-index: 50;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 40;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--surface-mid);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        /* Collapsible */
+        .collapse-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 1rem;
+            background: var(--surface-light);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .collapse-header:hover {
+            border-color: var(--primary);
+        }
+        
+        .collapse-header.active {
+            background: var(--surface-lighter);
+            border-color: var(--primary);
+        }
+        
+        .chevron {
+            transition: transform 0.2s;
+        }
+        
+        .chevron.rotated {
+            transform: rotate(90deg);
+        }
+        
+        .collapse-body {
+            display: none;
+            padding: 1rem;
+            background: rgba(45, 31, 66, 0.2);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+        
+        .collapse-body.active {
+            display: block;
+        }
+        
+        /* Attention section */
+        .attention-item {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .attention-out {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: #ef4444;
+            color: #fca5a5;
+        }
+        
+        .attention-short {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: #f59e0b;
+            color: #fcd34d;
+        }
+        
+        /* Color swatches */
+        .color-swatch {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 0.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Drag handle */
+        .drag-handle {
+            cursor: grab;
+            color: var(--text-secondary);
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="app">
+        <!-- Header -->
+        <header class="sticky top-0 z-30 border-b" style="border-color: var(--border); background: rgba(15, 10, 26, 0.8); backdrop-filter: blur(10px);">
+            <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg" style="background: linear-gradient(135deg, var(--primary), var(--secondary));"></div>
+                    <div>
+                        <h1 class="text-xl font-bold">ShipKit</h1>
+                        <p class="text-xs" style="color: var(--text-secondary);">Fulfillment Operations</p>
+                    </div>
+                </div>
+                <button onclick="openSettings()" class="p-2 rounded-lg" style="border: 1px solid var(--border);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 0l4.24-4.24M1 12h6m6 0h6m-17.78 7.78l4.24-4.24m5.08 0l4.24 4.24"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Tab Navigation (7 tabs) -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('scan', this)">SCAN</button>
+                <button class="tab-btn" onclick="switchTab('pick', this)">PICK LIST</button>
+                <button class="tab-btn" onclick="switchTab('inventory', this)">INVENTORY</button>
+                <button class="tab-btn" onclick="switchTab('history', this)">HISTORY</button>
+                <button class="tab-btn" onclick="switchTab('analytics', this)">ANALYTICS</button>
+                <button class="tab-btn" onclick="switchTab('reorder', this)">REORDER</button>
+                <button class="tab-btn" onclick="switchTab('finance', this)">FINANCE</button>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="p-6 max-w-7xl mx-auto">
+            
+            <!-- SCAN TAB -->
+            <div id="tab-scan" class="tab-content space-y-6">
+                <!-- Step 0: File Vault -->
+                <div class="card">
+                    <div class="collapse-header" onclick="toggleCollapse(this)">
+                        <div class="step-badge">📦</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold">Step 0 - File Vault</h3>
+                            <p class="text-xs" style="color: var(--text-secondary);">Saved batches (drag from vault to upload)</p>
+                        </div>
+                        <svg class="chevron w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                    <div class="collapse-body space-y-2">
+                        <div class="text-sm" style="color: var(--text-secondary);">2 saved batches</div>
+                        <div class="space-y-2">
+                            <div class="p-3 rounded" style="background: var(--surface-lighter); border: 1px dashed var(--border); cursor: grab;">
+                                <div class="flex items-center gap-2">
+                                    <svg class="drag-handle w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.5"></circle><circle cx="9" cy="12" r="1.5"></circle><circle cx="9" cy="19" r="1.5"></circle><circle cx="16" cy="5" r="1.5"></circle><circle cx="16" cy="12" r="1.5"></circle><circle cx="16" cy="19" r="1.5"></circle></svg>
+                                    <span class="monospace text-sm">2024-04-14 | Batch #1</span>
+                                    <span class="ml-auto text-xs px-2 py-1 rounded" style="background: rgba(92, 224, 208, 0.1); color: var(--primary);">3 files</span>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded" style="background: var(--surface-lighter); border: 1px dashed var(--border); cursor: grab;">
+                                <div class="flex items-center gap-2">
+                                    <svg class="drag-handle w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.5"></circle><circle cx="9" cy="12" r="1.5"></circle><circle cx="9" cy="19" r="1.5"></circle><circle cx="16" cy="5" r="1.5"></circle><circle cx="16" cy="12" r="1.5"></circle><circle cx="16" cy="19" r="1.5"></circle></svg>
+                                    <span class="monospace text-sm">2024-04-13 | Batch #2</span>
+                                    <span class="ml-auto text-xs px-2 py-1 rounded" style="background: rgba(92, 224, 208, 0.1); color: var(--primary);">2 files</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 1: Upload Files -->
+                <div class="card">
+                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
+                        <div class="step-badge">1</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold">Upload Files</h3>
+                            <p class="text-xs" style="color: var(--text-secondary);">0/3 files uploaded</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="border-2 border-dashed rounded-lg p-8 text-center" style="border-color: var(--border); background: rgba(92, 224, 208, 0.03);">
+                            <input type="file" id="fileInput" multiple accept=".pdf,.csv" class="hidden" onchange="handleFileUpload(event)">
+                            <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p style="color: var(--text-secondary);" class="mb-2">Drag labels (PDF), manifests (CSV), slips here</p>
+                            <button onclick="document.getElementById('fileInput').click()" class="btn btn-primary text-sm">Browse Files</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Print Labels -->
+                <div class="card">
+                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
+                        <div class="step-badge">2</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold">Print Shipping Labels</h3>
+                            <p class="text-xs" style="color: var(--text-secondary);">Printed 0/1</p>
+                        </div>
+                        <button class="btn text-sm">Mark All Printed</button>
+                    </div>
+                    <div class="p-4 space-y-2">
+                        <div class="flex items-center gap-3 p-3 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border);">
+                            <div class="w-6 h-6 rounded-full border-2" style="border-color: var(--primary);"></div>
+                            <span class="flex-1 monospace text-sm">shipping-labels-2024-04-16.pdf</span>
+                            <button class="btn text-xs">Print</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Pick List -->
+                <div class="card hidden">
+                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
+                        <div class="step-badge">3</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold">Pick List</h3>
+                            <p class="text-xs" style="color: var(--text-secondary);">Picked 0/12 units</p>
+                        </div>
+                        <button class="btn text-sm">Fullscreen Picking</button>
+                    </div>
+                    <div class="p-4">
+                        <!-- Summary Bar -->
+                        <div class="flex gap-4 mb-4 pb-4 border-b" style="border-color: var(--border);">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold gradient-text">12</div>
+                                <p class="text-xs" style="color: var(--text-secondary);">Total Units</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold">3</div>
+                                <p class="text-xs" style="color: var(--text-secondary);">Variants</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold attention-out">1</div>
+                                <p class="text-xs" style="color: var(--text-secondary);">OUT</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold attention-short">2</div>
+                                <p class="text-xs" style="color: var(--text-secondary);">SHORT</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Attention Section -->
+                        <div class="mb-4">
+                            <h4 class="text-sm font-semibold mb-2">⚠️ Attention Items</h4>
+                            <div class="attention-item attention-out">
+                                <div class="font-semibold">OUT: Royal Blue 4-Pack</div>
+                                <div>Need 3 units • Ordered 2024-04-15</div>
+                            </div>
+                            <div class="attention-item attention-short">
+                                <div class="font-semibold">SHORT: Sage Green 2-Pack</div>
+                                <div>Have 1/3 • Suggested: Quick restock</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pack Type Groups -->
+                        <div class="space-y-3">
+                            <div>
+                                <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
+                                    <span class="step-badge" style="width: 1.5rem; height: 1.5rem; font-size: 0.75rem;">2pk</span>
+                                    2-Pack (5 units)
+                                </h4>
+                                <div class="space-y-1 ml-4">
+                                    <div class="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-opacity-50" style="background: var(--surface-lighter);">
+                                        <input type="checkbox">
+                                        <div class="color-swatch" style="background: #ef4444;"></div>
+                                        <span class="flex-1 text-sm">Red</span>
+                                        <span class="monospace text-xs">2/2</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-opacity-50" style="background: var(--surface-lighter);">
+                                        <input type="checkbox">
+                                        <div class="color-swatch" style="background: #f59e0b;"></div>
+                                        <span class="flex-1 text-sm">Gold</span>
+                                        <span class="monospace text-xs">3/3</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
+                                    <span class="step-badge" style="width: 1.5rem; height: 1.5rem; font-size: 0.75rem;">4pk</span>
+                                    4-Pack (7 units)
+                                </h4>
+                                <div class="space-y-1 ml-4">
+                                    <div class="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-opacity-50" style="background: var(--surface-lighter);">
+                                        <input type="checkbox">
+                                        <div class="color-swatch" style="background: #3b82f6;"></div>
+                                        <span class="flex-1 text-sm">Blue</span>
+                                        <span class="monospace text-xs">0/1</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dispatch Deadline Banner (shows when CSV uploaded) -->
+                <div class="card hidden urgency-yellow" style="background: rgba(245, 158, 11, 0.05); border-color: var(--border);">
+                    <div class="p-4 flex items-center justify-between">
+                        <div>
+                            <h4 class="font-semibold">Dispatch in 2h 15m</h4>
+                            <p class="text-xs" style="color: var(--text-secondary);">Close window at 5:00 PM • 12 orders ready</p>
+                        </div>
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path></svg>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Scan Packages -->
+                <div class="card">
+                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
+                        <div class="step-badge">4</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold">Scan Packages</h3>
+                            <p class="text-xs" style="color: var(--text-secondary);">0 scanned</p>
+                        </div>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <button id="armBtn" onclick="toggleScanner()" class="w-full py-4 rounded-lg font-semibold" style="background: var(--surface-lighter); border: 2px solid var(--border);">
+                            Arm Scanner
+                        </button>
+                        <input type="text" id="scanInput" class="hidden-input" style="position: absolute; left: -999px;" onkeydown="handleScan(event)">
+                        
+                        <!-- Pile Cards -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="pile-card text-center">
+                                <div class="text-3xl font-bold gradient-text">0</div>
+                                <p class="text-sm mt-2" style="color: var(--text-secondary);">Manifest 1</p>
+                            </div>
+                            <div class="pile-card text-center">
+                                <div class="text-3xl font-bold">0</div>
+                                <p class="text-sm mt-2" style="color: var(--text-secondary);">Clerk Counter</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Scan Log -->
+                        <div class="border rounded-lg" style="border-color: var(--border);">
+                            <div class="p-3 border-b font-semibold text-sm flex justify-between items-center" style="border-color: var(--border);">
+                                <span>Scan Log</span>
+                                <span id="scanCount" class="text-xs" style="color: var(--text-secondary);">0 scanned</span>
+                            </div>
+                            <div id="scanLog" class="p-4 text-center max-h-48 overflow-y-auto" style="color: var(--text-secondary); font-size: 0.875rem;">
+                                Scans will appear here
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 5: Print USPS Slips -->
+                <div class="card">
+                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
+                        <div class="step-badge">5</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold">Print USPS Manifest Slips</h3>
+                            <p class="text-xs" style="color: var(--text-secondary);">Printed 0/0 (hidden until slips uploaded)</p>
+                        </div>
+                        <button class="btn text-sm" disabled>Mark All Printed</button>
+                    </div>
+                    <div class="p-4 text-center" style="color: var(--text-secondary); padding: 2rem;">
+                        Upload USPS slip files to enable this step
+                    </div>
+                </div>
+                
+                <!-- Step 6: Ship & Archive -->
+                <div class="card">
+                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
+                        <div class="step-badge">6</div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold">Ship & Archive</h3>
+                            <p class="text-xs" style="color: var(--text-secondary);">Finalize batch and save</p>
+                        </div>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <button onclick="shipBatch()" disabled class="w-full py-4 rounded-lg font-semibold btn-primary">
+                            Ship & Archive Batch
+                        </button>
+                        
+                        <!-- Hold Queue -->
+                        <div class="collapse-header" onclick="toggleCollapse(this)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 7v5l4 2"></path></svg>
+                            <span>Hold Queue (1)</span>
+                            <svg class="chevron w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
+                        <div class="collapse-body">
+                            <div class="p-3 rounded mb-3" style="background: var(--surface-lighter); border: 1px solid var(--border);">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div>
+                                        <div class="font-semibold">Order #SKU-12345</div>
+                                        <p class="text-xs" style="color: var(--text-secondary);">Royal Blue 2-Pack • Customer Request</p>
+                                    </div>
+                                    <span class="text-xs px-2 py-1 rounded urgency-red">60m left</span>
+                                </div>
+                                <button class="btn text-xs">Release Hold</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Batch Summary Cards -->
+                        <div class="grid gap-4 mt-4">
+                            <div class="p-4 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border);">
+                                <h4 class="font-semibold text-sm mb-3">Batch Summary</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span style="color: var(--text-secondary);">Manifest Zone</span>
+                                        <span>8 packages</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span style="color: var(--text-secondary);">Clerk Counter</span>
+                                        <span>2 packages</span>
+                                    </div>
+                                    <div class="flex justify-between font-semibold pt-2 border-t" style="border-color: var(--border);">
+                                        <span>Total</span>
+                                        <span>10 packages</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="p-4 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border);">
+                                <h4 class="font-semibold text-sm mb-3">Variants Shipped</h4>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-2 py-1 rounded text-xs" style="background: rgba(92, 224, 208, 0.2);">Red 2pk</span>
+                                    <span class="px-2 py-1 rounded text-xs" style="background: rgba(92, 224, 208, 0.2);">Blue 4pk</span>
+                                    <span class="px-2 py-1 rounded text-xs" style="background: rgba(92, 224, 208, 0.2);">Gold 2pk</span>
+                                </div>
+                            </div>
+                            
+                            <div class="p-4 rounded text-xs space-y-1" style="background: var(--surface-lighter); border: 1px solid var(--border); color: var(--text-secondary);">
+                                <div>📤 Dropped: 2024-04-16 17:02:14</div>
+                                <div>✓ Carrier Accepted: 2024-04-16 17:15:30</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- INVENTORY TAB -->
+            <div id="tab-inventory" class="tab-content hidden space-y-6">
+                <div class="card">
+                    <div class="p-4 border-b flex justify-between items-center" style="border-color: var(--border);">
+                        <div>
+                            <h2 class="font-semibold">Stock Levels</h2>
+                            <p class="text-xs" style="color: var(--text-secondary);">324 units in stock • 12 shipped today</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold gradient-text">324</div>
+                            <p class="text-xs" style="color: var(--text-secondary);">Total Units</p>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <table class="w-full text-sm">
+                            <thead style="border-bottom: 1px solid var(--border);">
+                                <tr>
+                                    <th class="text-left py-2 px-3" style="color: var(--text-secondary);">Color</th>
+                                    <th class="text-left py-2 px-3" style="color: var(--text-secondary);">Pack Type</th>
+                                    <th class="text-center py-2 px-3" style="color: var(--text-secondary);">Stock</th>
+                                    <th class="text-center py-2 px-3" style="color: var(--text-secondary);">Today</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y" style="border-color: var(--border);">
+                                <tr>
+                                    <td class="py-3 px-3 flex items-center gap-2">
+                                        <div class="color-swatch" style="background: #ef4444;"></div>
+                                        <span>Red</span>
+                                    </td>
+                                    <td class="py-3 px-3">2-Pack</td>
+                                    <td class="py-3 px-3 text-center monospace">
+                                        <input type="number" value="48" class="w-12 text-center" style="background: var(--surface-lighter); border: 1px solid var(--border); padding: 0.25rem; border-radius: 0.25rem;">
+                                    </td>
+                                    <td class="py-3 px-3 text-center">
+                                        <span class="px-2 py-1 rounded text-xs" style="background: rgba(92, 224, 208, 0.1); color: var(--primary);">-4</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-3 flex items-center gap-2">
+                                        <div class="color-swatch" style="background: #3b82f6;"></div>
+                                        <span>Blue</span>
+                                    </td>
+                                    <td class="py-3 px-3">4-Pack</td>
+                                    <td class="py-3 px-3 text-center monospace">
+                                        <input type="number" value="36" class="w-12 text-center" style="background: var(--surface-lighter); border: 1px solid var(--border); padding: 0.25rem; border-radius: 0.25rem;">
+                                    </td>
+                                    <td class="py-3 px-3 text-center">
+                                        <span class="px-2 py-1 rounded text-xs" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5;">-6</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- HISTORY TAB -->
+            <div id="tab-history" class="tab-content hidden space-y-6">
+                <div class="card">
+                    <div class="p-4 border-b" style="border-color: var(--border);">
+                        <h2 class="font-semibold">Shipping History</h2>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="p-4 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border);">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-semibold">Batch #2024-04-16-001</h4>
+                                    <p class="text-xs" style="color: var(--text-secondary);">10 packages • 3 variants</p>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">Shipped</span>
+                            </div>
+                            <p class="text-xs" style="color: var(--text-secondary);">✓ Dropped: 17:02 • Accepted: 17:15</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ANALYTICS TAB -->
+            <div id="tab-analytics" class="tab-content hidden space-y-6">
+                <div class="card p-6 text-center" style="color: var(--text-secondary);">
+                    <p>📊 Analytics Dashboard Coming Soon</p>
+                </div>
+            </div>
+            
+            <!-- REORDER TAB -->
+            <div id="tab-reorder" class="tab-content hidden space-y-6">
+                <div class="card p-6 text-center" style="color: var(--text-secondary);">
+                    <p>🔄 Reorder Planning Coming Soon</p>
+                </div>
+            </div>
+            
+            <!-- FINANCE TAB -->
+            <div id="tab-finance" class="tab-content hidden space-y-6">
+                <div class="card p-6 text-center" style="color: var(--text-secondary);">
+                    <p>💰 Finance Dashboard Coming Soon</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Settings</h2>
+                <button onclick="closeSettings()" class="p-2" style="background: var(--surface-lighter); border: 1px solid var(--border); border-radius: 0.5rem;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Store Name</label>
+                    <input type="text" placeholder="My TikTok Shop" class="w-full p-2 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border); color: var(--text-primary);">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Carrier Close Time (Weekday)</label>
+                    <input type="time" value="17:00" class="w-full p-2 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border); color: var(--text-primary);">
+                </div>
+                <button class="w-full btn btn-primary mt-6">Save Settings</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Tab switching
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        
+        // Collapsible
+        function toggleCollapse(header) {
+            header.classList.toggle('active');
+            const chevron = header.querySelector('.chevron');
+            if (chevron) chevron.classList.toggle('rotated');
+            const body = header.nextElementSibling;
+            if (body && body.classList.contains('collapse-body')) {
+                body.classList.toggle('active');
+            }
+        }
+        
+        // Settings
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+        }
+        
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+        
+        // File upload
+        function handleFileUpload(e) {
+            const files = Array.from(e.target.files);
+            console.log('Files uploaded:', files.length);
+            showToast(`${files.length} file(s) uploaded`);
+        }
+        
+        // Scanner
+        function toggleScanner() {
+            const btn = document.getElementById('armBtn');
+            const input = document.getElementById('scanInput');
+            btn.classList.toggle('urgency-red');
+            if (btn.classList.contains('urgency-red')) {
+                btn.textContent = 'Scanner Armed ●';
+                input.focus();
+            } else {
+                btn.textContent = 'Arm Scanner';
+            }
+        }
+        
+        function handleScan(e) {
+            if (e.key === 'Enter') {
+                const tracking = e.target.value.trim();
+                if (tracking) {
+                    console.log('Scanned:', tracking);
+                    showToast(`Scanned: ${tracking}`);
+                    e.target.value = '';
+                }
+            }
+        }
+        
+        // Ship batch
+        function shipBatch() {
+            showToast('Batch shipped and archived!', 'success');
+        }
+        
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            toast.style.borderColor = type === 'success' ? '#10b981' : 'var(--border)';
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
