@@ -20,23 +20,95 @@
             --text-secondary: #b8a7d0;
         }
         
-        * { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { 
+        * { 
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        
+        html, body { 
+            width: 100%;
+            height: 100%;
             background: var(--surface-dark); 
             color: var(--text-primary);
             overflow-x: hidden;
+            display: block;
         }
-        .monospace { font-family: 'JetBrains Mono', monospace; }
         
-        /* Glassmorphism cards */
+        #app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: 100%;
+            background: var(--surface-dark);
+        }
+        
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            border-bottom: 1px solid var(--border);
+            background: rgba(15, 10, 26, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .logo {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        
+        .logo-text h1 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .logo-text p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        main {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
         .card {
             border: 1px solid var(--border);
             border-radius: 0.75rem;
             background: rgba(45, 31, 66, 0.4);
             backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
         
-        /* Gradient text for steps */
+        .monospace { 
+            font-family: 'JetBrains Mono', monospace; 
+        }
+        
         .gradient-text {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
@@ -44,7 +116,6 @@
             background-clip: text;
         }
         
-        /* Step badges */
         .step-badge {
             display: inline-flex;
             align-items: center;
@@ -58,17 +129,6 @@
             font-size: 0.875rem;
         }
         
-        .step-badge.inactive {
-            background: var(--surface-lighter);
-            color: var(--text-secondary);
-        }
-        
-        .step-badge.complete {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-        
-        /* Button styles */
         .btn {
             padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
@@ -95,9 +155,131 @@
             opacity: 0.9;
         }
         
-        .btn-danger {
-            background: #ef4444;
+        h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        input, textarea, select {
+            background: var(--surface-lighter);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            width: 100%;
+        }
+        
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--surface-mid);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .tab-btn {
+            padding: 1rem;
             border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+        
+        nav {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(45, 31, 66, 0.9);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            backdrop-filter: blur(10px);
+            z-index: 40;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        
+        .urgency-green {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .urgency-yellow {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .urgency-red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+    </style>
             color: white;
         }
         
@@ -284,19 +466,113 @@
 <body class="min-h-screen">
     <div id="app">
         <!-- Header -->
-        <header class="sticky top-0 z-30 border-b" style="border-color: var(--border); background: rgba(15, 10, 26, 0.8); backdrop-filter: blur(10px);">
-            <div class="flex items-center justify-between px-6 py-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg" style="background: linear-gradient(135deg, var(--primary), var(--secondary));"></div>
-                    <div>
-                        <h1 class="text-xl font-bold">ShipKit</h1>
-                        <p class="text-xs" style="color: var(--text-secondary);">Fulfillment Operations</p>
-                    </div>
+        <header>
+            <div class="header-left">
+                <div class="logo"></div>
+                <div class="logo-text">
+                    <h1>ShipKit</h1>
+                    <p>Fulfillment Operations</p>
                 </div>
-                <button onclick="openSettings()" class="p-2 rounded-lg" style="border: 1px solid var(--border);">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 0l4.24-4.24M1 12h6m6 0h6m-17.78 7.78l4.24-4.24m5.08 0l4.24 4.24"></path>
+            </div>
+            <button onclick="openSettings()" class="btn">⚙️ Settings</button>
+        </header>
+        
+        <!-- Navigation -->
+        <nav>
+            <button class="tab-btn active" onclick="switchTab('scan', this)">SCAN</button>
+            <button class="tab-btn" onclick="switchTab('pick', this)">PICK LIST</button>
+            <button class="tab-btn" onclick="switchTab('inventory', this)">INVENTORY</button>
+            <button class="tab-btn" onclick="switchTab('history', this)">HISTORY</button>
+            <button class="tab-btn" onclick="switchTab('analytics', this)">ANALYTICS</button>
+            <button class="tab-btn" onclick="switchTab('reorder', this)">REORDER</button>
+            <button class="tab-btn" onclick="switchTab('finance', this)">FINANCE</button>
+        </nav>
+        
+        <!-- Main Content -->
+        <main>
+            <!-- SCAN TAB -->
+            <div id="tab-scan" class="tab-content active">
+                <div class="card">
+                    <h2><span class="step-badge">0</span> File Vault</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">View and manage saved batches</p>
+                    <button class="btn" onclick="showToast('File Vault coming soon')">📁 Open Vault</button>
+                </div>
+                
+                <div class="card">
+                    <h2><span class="step-badge">1</span> Upload Files</h2>
+                    <input type="file" multiple onchange="handleFileUpload(event)" accept=".pdf,.csv" style="padding: 1rem; border: 2px dashed var(--border); border-radius: 0.5rem; cursor: pointer;">
+                </div>
+                
+                <div class="card">
+                    <h2><span class="step-badge">2</span> Print Labels <span style="color: var(--text-secondary); font-size: 0.875rem;">0/0 Printed</span></h2>
+                    <p style="color: var(--text-secondary);">Upload label PDFs to track printing</p>
+                </div>
+                
+                <div class="card">
+                    <h2><span class="step-badge">3</span> Scan Packages <span style="color: var(--text-secondary); font-size: 0.875rem;">0 Scanned</span></h2>
+                    <button id="armBtn" class="btn" onclick="toggleScanner()">Arm Scanner</button>
+                    <input type="text" id="scanInput" placeholder="Scan tracking number..." style="margin-top: 1rem; display: none;">
+                </div>
+                
+                <div class="card">
+                    <h2><span class="step-badge">4</span> Print USPS Slips <span style="color: var(--text-secondary); font-size: 0.875rem;">0/0 Printed</span></h2>
+                    <p style="color: var(--text-secondary);">Upload slip files to track printing</p>
+                </div>
+                
+                <div class="card">
+                    <h2><span class="step-badge">5</span> Ship & Archive</h2>
+                    <button class="btn btn-primary" onclick="shipBatch()">📦 Ship Batch</button>
+                </div>
+            </div>
+            
+            <!-- PICK LIST TAB -->
+            <div id="tab-pick" class="tab-content">
+                <div class="card">
+                    <h2>Pick List</h2>
+                    <p style="color: var(--text-secondary);">Upload manifest CSV to generate pick list</p>
+                </div>
+            </div>
+            
+            <!-- INVENTORY TAB -->
+            <div id="tab-inventory" class="tab-content">
+                <div class="card">
+                    <h2>Inventory</h2>
+                    <p style="color: var(--text-secondary);">Manage stock levels</p>
+                </div>
+            </div>
+            
+            <!-- HISTORY TAB -->
+            <div id="tab-history" class="tab-content">
+                <div class="card">
+                    <h2>History</h2>
+                    <p style="color: var(--text-secondary);">View past shipments</p>
+                </div>
+            </div>
+            
+            <!-- ANALYTICS TAB -->
+            <div id="tab-analytics" class="tab-content">
+                <div class="card">
+                    <h2>Analytics</h2>
+                    <p style="color: var(--text-secondary);">📊 Coming soon</p>
+                </div>
+            </div>
+            
+            <!-- REORDER TAB -->
+            <div id="tab-reorder" class="tab-content">
+                <div class="card">
+                    <h2>Reorder</h2>
+                    <p style="color: var(--text-secondary);">🔄 Coming soon</p>
+                </div>
+            </div>
+            
+            <!-- FINANCE TAB -->
+            <div id="tab-finance" class="tab-content">
+                <div class="card">
+                    <h2>Finance</h2>
+                    <p style="color: var(--text-secondary);">💰 Coming soon</p>
+                </div>
+            </div>
+        </main>
                     </svg>
                 </button>
             </div>
@@ -742,22 +1018,85 @@
     <script>
         // Tab switching
         function switchTab(tabName, btn) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
             
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            // Remove active from all buttons
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            
+            // Show selected tab and mark button active
+            const tabElement = document.getElementById('tab-' + tabName);
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
+            if (btn) {
+                btn.classList.add('active');
+            }
         }
         
-        // Collapsible
-        function toggleCollapse(header) {
-            header.classList.toggle('active');
-            const chevron = header.querySelector('.chevron');
-            if (chevron) chevron.classList.toggle('rotated');
-            const body = header.nextElementSibling;
-            if (body && body.classList.contains('collapse-body')) {
-                body.classList.toggle('active');
+        // File upload
+        function handleFileUpload(e) {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                showToast(`${files.length} file(s) uploaded successfully`);
             }
+        }
+        
+        // Scanner
+        let isArmed = false;
+        function toggleScanner() {
+            const btn = document.getElementById('armBtn');
+            const input = document.getElementById('scanInput');
+            isArmed = !isArmed;
+            
+            if (isArmed) {
+                btn.textContent = '🔴 Scanner Armed';
+                btn.classList.add('urgency-red');
+                input.style.display = 'block';
+                input.focus();
+            } else {
+                btn.textContent = 'Arm Scanner';
+                btn.classList.remove('urgency-red');
+                input.style.display = 'none';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const scanInput = document.getElementById('scanInput');
+            if (scanInput) {
+                scanInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && isArmed) {
+                        const tracking = e.target.value.trim();
+                        if (tracking) {
+                            showToast(`Scanned: ${tracking}`);
+                            e.target.value = '';
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Ship batch
+        function shipBatch() {
+            showToast('Batch shipped and archived! 📦', 'success');
+        }
+        
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            if (type === 'success') {
+                toast.style.borderColor = '#10b981';
+            }
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
         }
         
         // Settings
@@ -769,54 +1108,13 @@
             document.getElementById('settingsModal').classList.remove('active');
         }
         
-        // File upload
-        function handleFileUpload(e) {
-            const files = Array.from(e.target.files);
-            console.log('Files uploaded:', files.length);
-            showToast(`${files.length} file(s) uploaded`);
-        }
-        
-        // Scanner
-        function toggleScanner() {
-            const btn = document.getElementById('armBtn');
-            const input = document.getElementById('scanInput');
-            btn.classList.toggle('urgency-red');
-            if (btn.classList.contains('urgency-red')) {
-                btn.textContent = 'Scanner Armed ●';
-                input.focus();
-            } else {
-                btn.textContent = 'Arm Scanner';
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('settingsModal');
+            if (e.target === modal) {
+                closeSettings();
             }
-        }
-        
-        function handleScan(e) {
-            if (e.key === 'Enter') {
-                const tracking = e.target.value.trim();
-                if (tracking) {
-                    console.log('Scanned:', tracking);
-                    showToast(`Scanned: ${tracking}`);
-                    e.target.value = '';
-                }
-            }
-        }
-        
-        // Ship batch
-        function shipBatch() {
-            showToast('Batch shipped and archived!', 'success');
-        }
-        
-        // Toast notifications
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            toast.style.borderColor = type === 'success' ? '#10b981' : 'var(--border)';
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
-        }
+        });
     </script>
 </body>
 </html>
