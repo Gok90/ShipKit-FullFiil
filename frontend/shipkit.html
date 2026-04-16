@@ -572,6 +572,10 @@ body.picking-mode #pick-mode-btn {
 .step-header.collapsed #slips-chevron {
   transform: rotate(-90deg);
 }
+  #upload-chevron { display: inline-block; }
+  .step-header.collapsed #upload-chevron {
+    transform: rotate(-90deg);
+  }
 </style>
 </head>
 <body>
@@ -813,8 +817,10 @@ body.picking-mode #pick-mode-btn {
      return `
        <!-- Step 1: Upload Files -->
        <div class="step active" id="step-upload-card">
-         <div class="step-header" onclick="getEl('upload-body').classList.toggle('hidden')">
-           <div class="step-num">1</div><b style="font-size:16px;">Upload Files</b>
+         <div class="step-header" onclick="getEl('upload-body').classList.toggle('hidden'); this.classList.toggle('collapsed')">
+           <span id="upload-chevron" style="color:#3fc5e7;font-size:11px;margin-right:4px;transition:transform 0.2s">▼</span>
+           <div class="step-num">1</div><b style="font-size:16px;flex:1">Upload Files</b>
+           <span id="upload-status-badge" class="badge hidden"></span>
          </div>
          <div class="step-body" id="upload-body">
            <div class="drop-zone" id="drop-zone" onclick="getEl('file-input').click()" ondragover="event.preventDefault(); this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
@@ -1583,18 +1589,97 @@ body.picking-mode #pick-mode-btn {
          panel.innerHTML = '<i style="color:var(--muted);font-size:12px">No archived files yet</i>';
        } else {
          let html = '';
-         data.dates.forEach(d => {
-           html += '<div class="vault-date-header">' + d.date + '</div>';
-           d.files.forEach(f => {
-             const sizeKb = (f.size / 1024).toFixed(0);
-             const safePath = JSON.stringify(f.path);
-             const safeName = JSON.stringify(f.name);
-             html += '<div class="vault-file-row" onclick="loadVaultFile(' + safePath + ',' + safeName + ')">' +
-               '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">&#128206; ' + f.name + '</span>' +
-               '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
-               '<button class="btn" style="padding:2px 8px;font-size:11px">Use</button>' +
-               '</div>';
-           });
+         data.dates.forEach((d, dIdx) => {
+           const isToday = dIdx === 0;
+           const dateClass = isToday ? 'vault-date-today' : 'vault-date-old';
+           const dateStyle = isToday ? 'border: 1px solid rgba(63, 197, 231, 0.3);' : '';
+           
+           html += '<div class="' + dateClass + '" style="' + dateStyle + ' margin-bottom:16px;padding:12px;border-radius:8px;background:rgba(45,31,66,0.3)">';
+           
+           // Load All Today button (only for today)
+           if (isToday) {
+             html += '<button class="btn btn-accent" style="width:100%;margin-bottom:12px;padding:10px;font-size:12px" ' +
+               'onclick="loadAllToday(\'' + d.date + '\')">' +
+               '📂 Load All Today\'s Files</button>';
+           }
+           
+           // Date header with chevron
+           html += '<div style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:8px;user-select:none" ' +
+             'onclick="this.parentElement.querySelector(\'.vault-files-' + dIdx + '\').classList.toggle(\'hidden\')">' +
+             '<span style="color:var(--accent);font-size:11px;transition:transform 0.2s;display:inline-block" ' +
+             'id="vault-chevron-' + dIdx + '">' + (isToday ? '▼' : '▶') + '</span>' +
+             '<span style="font-size:12px;font-weight:600;color:var(--text)">' + d.date + '</span>' +
+             '</div>';
+           
+           // Files container (hidden for non-today dates)
+           html += '<div class="vault-files-' + dIdx + '" style="' + (isToday ? '' : 'display:none;') + '">';
+           
+           // Group by type
+           const labels = d.files.filter(f => f.type === 'labels');
+           const manifests = d.files.filter(f => f.type === 'manifests');
+           const slips = d.files.filter(f => f.type === 'slips');
+           
+           // Labels section
+           if (labels.length > 0) {
+             html += '<div style="margin-top:8px">' +
+               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📄 Labels</div>';
+             labels.forEach((f, idx) => {
+               const sizeKb = (f.size / 1024).toFixed(0);
+               const safePath = JSON.stringify(f.path);
+               const safeName = JSON.stringify(f.name);
+               html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;' +
+                 'background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.15);margin-bottom:4px">' +
+                 '<input type="checkbox" id="file-label-' + dIdx + '-' + idx + '" style="cursor:pointer;accent-color:var(--accent)">' +
+                 '<label for="file-label-' + dIdx + '-' + idx + '" style="flex:1;cursor:pointer;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+                 f.name + '</label>' +
+                 '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
+                 '</div>';
+             });
+             html += '<button class="btn" style="width:100%;padding:6px;font-size:11px;margin-top:6px" ' +
+               'onclick="loadGroupFiles(\'label-' + dIdx + '\',\'labels\',' + dIdx + ')">Load Selected</button></div>';
+           }
+           
+           // Manifests section
+           if (manifests.length > 0) {
+             html += '<div style="margin-top:12px">' +
+               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📋 Manifests</div>';
+             manifests.forEach((f, idx) => {
+               const sizeKb = (f.size / 1024).toFixed(0);
+               const safePath = JSON.stringify(f.path);
+               const safeName = JSON.stringify(f.name);
+               html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;' +
+                 'background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.15);margin-bottom:4px">' +
+                 '<input type="checkbox" id="file-manifest-' + dIdx + '-' + idx + '" style="cursor:pointer;accent-color:var(--accent)">' +
+                 '<label for="file-manifest-' + dIdx + '-' + idx + '" style="flex:1;cursor:pointer;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+                 f.name + '</label>' +
+                 '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
+                 '</div>';
+             });
+             html += '<button class="btn" style="width:100%;padding:6px;font-size:11px;margin-top:6px" ' +
+               'onclick="loadGroupFiles(\'manifest-' + dIdx + '\',\'manifests\',' + dIdx + ')">Load Selected</button></div>';
+           }
+           
+           // Slips section
+           if (slips.length > 0) {
+             html += '<div style="margin-top:12px">' +
+               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📦 USPS Slips</div>';
+             slips.forEach((f, idx) => {
+               const sizeKb = (f.size / 1024).toFixed(0);
+               const safePath = JSON.stringify(f.path);
+               const safeName = JSON.stringify(f.name);
+               html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;' +
+                 'background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.15);margin-bottom:4px">' +
+                 '<input type="checkbox" id="file-slip-' + dIdx + '-' + idx + '" style="cursor:pointer;accent-color:var(--accent)">' +
+                 '<label for="file-slip-' + dIdx + '-' + idx + '" style="flex:1;cursor:pointer;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+                 f.name + '</label>' +
+                 '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
+                 '</div>';
+             });
+             html += '<button class="btn" style="width:100%;padding:6px;font-size:11px;margin-top:6px" ' +
+               'onclick="loadGroupFiles(\'slip-' + dIdx + '\',\'slips\',' + dIdx + ')">Load Selected</button></div>';
+           }
+           
+           html += '</div></div>';
          });
          panel.innerHTML = html;
        }
@@ -1605,6 +1690,50 @@ body.picking-mode #pick-mode-btn {
        getEl('vault-status').textContent = 'Error loading vault';
        console.error('Vault load error:', e);
      }
+   }
+
+   function loadGroupFiles(groupId, fileType, dateIdx) {
+     const checkboxes = document.querySelectorAll('input[id^="file-' + fileType.substring(0, fileType.length - 1) + '-' + dateIdx + '"]');
+     const filesToLoad = [];
+     checkboxes.forEach(cb => {
+       if (cb.checked) {
+         const label = cb.nextElementSibling.textContent.trim();
+         filesToLoad.push({label, checkbox: cb});
+       }
+     });
+     if (filesToLoad.length === 0) {
+       showToast('No files selected', 'warn');
+       return;
+     }
+     filesToLoad.forEach(item => {
+       item.checkbox.click();
+     });
+     showToast('Loading ' + filesToLoad.length + ' file(s)...', 'info');
+   }
+
+   function loadAllToday(date) {
+     const allCheckboxes = document.querySelectorAll('.vault-files-0 input[type="checkbox"]');
+     allCheckboxes.forEach(cb => cb.checked = true);
+     const checkboxes = document.querySelectorAll('.vault-files-0 input[type="checkbox"]:checked');
+     let count = 0;
+     checkboxes.forEach(cb => {
+       const label = cb.nextElementSibling.textContent.trim();
+       const parentDiv = cb.closest('div[style*="background"]');
+       if (parentDiv) {
+         const sizeSpan = parentDiv.querySelector('span[style*="white-space"]');
+         if (sizeSpan) {
+           const fakeEvent = {target: cb};
+           cb.parentElement.onclick = function() {
+             const checkId = this.querySelector('input').id;
+             if (checkId.includes('file-label')) loadGroupFiles('label-0', 'labels', 0);
+             else if (checkId.includes('file-manifest')) loadGroupFiles('manifest-0', 'manifests', 0);
+             else if (checkId.includes('file-slip')) loadGroupFiles('slip-0', 'slips', 0);
+           };
+           count++;
+         }
+       }
+     });
+     showToast('Loading all files for ' + date + '...', 'success');
    }
 
    async function loadVaultFile(path, name) {
@@ -2500,7 +2629,6 @@ body.picking-mode #pick-mode-btn {
        checks += '<div class="pill"><span>📋 Manifest CSV' +
          (S.csvFiles.length > 1 ? 's (' + S.csvFiles.length + ' files)' : ' Loaded') +
          '</span>' +
-         '<span class="badge badge-green">' + totalOrders + ' orders total</span>' +
          '<span id="sla-pill-badge" class="badge hidden"></span></div>';
        if (S.csvFiles.length > 1) {
          S.csvFiles.forEach(cf => {
@@ -2533,6 +2661,24 @@ body.picking-mode #pick-mode-btn {
            '</div>';
        });
      }
+
+  const uploadBadge = document.getElementById('upload-status-badge');
+  if (uploadBadge) {
+    const hasFiles = APP_STATE.labelsLoaded ||
+      APP_STATE.csvLoaded || APP_STATE.slipsLoaded;
+    if (hasFiles) {
+      const parts = [];
+      if (APP_STATE.labelsLoaded) parts.push('Labels');
+      if (APP_STATE.csvLoaded) parts.push('CSV');
+      if (APP_STATE.slipsLoaded) parts.push('Slips');
+      uploadBadge.textContent = parts.join(' · ') + ' Loaded';
+      uploadBadge.className = 'badge badge-green';
+      uploadBadge.classList.remove('hidden');
+    } else {
+      uploadBadge.classList.add('hidden');
+    }
+  }
+
      getEl('file-checklists').innerHTML = checks;
      
      if (APP_STATE.labelsLoaded || APP_STATE.csvLoaded) {
