@@ -3,1118 +3,2370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShipKit - Fulfillment Operations</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>ShipKit — PRINTZ&GIGGLEZ</title>
+    <!-- PDF.js for text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
-        :root {
-            --primary: #5ce0d0;
-            --secondary: #a78bfa;
-            --surface-dark: #0f0a1a;
-            --surface-mid: #1a1230;
-            --surface-light: #2d1f42;
-            --surface-lighter: #3d2d52;
-            --border: #5a4a7a;
-            --text-primary: #ffffff;
-            --text-secondary: #b8a7d0;
-        }
-        
-        * { 
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        }
-        
-        html, body { 
-            width: 100%;
-            height: 100%;
-            background: var(--surface-dark); 
-            color: var(--text-primary);
-            overflow-x: hidden;
-            display: block;
-        }
-        
-        #app {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            width: 100%;
-            background: var(--surface-dark);
-        }
-        
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 30;
-            border-bottom: 1px solid var(--border);
-            background: rgba(15, 10, 26, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 1rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .logo {
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 0.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-        }
-        
-        .logo-text h1 {
-            font-size: 1.25rem;
-            font-weight: bold;
-            margin: 0;
-        }
-        
-        .logo-text p {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin: 0;
-        }
-        
-        main {
-            flex: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .card {
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            background: rgba(45, 31, 66, 0.4);
-            backdrop-filter: blur(10px);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .monospace { 
-            font-family: 'JetBrains Mono', monospace; 
-        }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .step-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: var(--surface-dark);
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-        
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border);
-            background: var(--surface-light);
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        
-        .btn:hover {
-            border-color: var(--primary);
-            background: var(--surface-lighter);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
-            color: var(--surface-dark);
-        }
-        
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-        
-        h2 {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        input, textarea, select {
-            background: var(--surface-lighter);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            width: 100%;
-        }
-        
-        .space-y-4 > * + * {
-            margin-top: 1rem;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 50;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: var(--surface-mid);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .tab-btn {
-            padding: 1rem;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        
-        .tab-btn.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-        
-        .tab-btn:hover {
-            color: var(--text-primary);
-        }
-        
-        nav {
-            display: flex;
-            gap: 0;
-            border-bottom: 1px solid var(--border);
-            padding: 0 1.5rem;
-        }
-        
-        .toast {
-            position: fixed;
-            bottom: 1rem;
-            right: 1rem;
-            background: rgba(45, 31, 66, 0.9);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            backdrop-filter: blur(10px);
-            z-index: 40;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
-        
-        .urgency-green {
-            background: linear-gradient(135deg, #10b981, #059669);
-        }
-        
-        .urgency-yellow {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-        }
-        
-        .urgency-red {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-    </style>
-            color: white;
-        }
-        
-        /* Tab navigation */
-        .tab-nav {
-            display: flex;
-            gap: 0.5rem;
-            border-bottom: 1px solid var(--border);
-            padding: 0 1.5rem;
-            overflow-x: auto;
-        }
-        
-        .tab-btn {
-            padding: 0.75rem 1.25rem;
-            border: none;
-            background: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        
-        .tab-btn.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-        
-        /* Urgency states */
-        .urgency-green { color: #10b981; background: rgba(16, 185, 129, 0.1); }
-        .urgency-yellow { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
-        .urgency-red { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
-        
-        /* Pile cards */
-        .pile-card {
-            position: relative;
-            border: 2px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            background: var(--surface-light);
-            transition: all 0.3s;
-        }
-        
-        .pile-card.complete {
-            border-color: #10b981;
-            background: rgba(16, 185, 129, 0.05);
-        }
-        
-        .pile-card:hover {
-            border-color: var(--primary);
-            box-shadow: 0 0 20px rgba(92, 224, 208, 0.2);
-        }
-        
-        /* Toast notifications */
-        .toast {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            background: var(--surface-light);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            animation: slideIn 0.3s ease;
-            z-index: 50;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 40;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: var(--surface-mid);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 2rem;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        /* Collapsible */
-        .collapse-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            cursor: pointer;
-            padding: 1rem;
-            background: var(--surface-light);
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            transition: all 0.2s;
-        }
-        
-        .collapse-header:hover {
-            border-color: var(--primary);
-        }
-        
-        .collapse-header.active {
-            background: var(--surface-lighter);
-            border-color: var(--primary);
-        }
-        
-        .chevron {
-            transition: transform 0.2s;
-        }
-        
-        .chevron.rotated {
-            transform: rotate(90deg);
-        }
-        
-        .collapse-body {
-            display: none;
-            padding: 1rem;
-            background: rgba(45, 31, 66, 0.2);
-            border: 1px solid var(--border);
-            border-top: none;
-            border-radius: 0 0 0.5rem 0.5rem;
-        }
-        
-        .collapse-body.active {
-            display: block;
-        }
-        
-        /* Attention section */
-        .attention-item {
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border-left: 4px solid;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-        }
-        
-        .attention-out {
-            background: rgba(239, 68, 68, 0.1);
-            border-left-color: #ef4444;
-            color: #fca5a5;
-        }
-        
-        .attention-short {
-            background: rgba(245, 158, 11, 0.1);
-            border-left-color: #f59e0b;
-            color: #fcd34d;
-        }
-        
-        /* Color swatches */
-        .color-swatch {
-            display: inline-block;
-            width: 1.25rem;
-            height: 1.25rem;
-            border-radius: 0.25rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        /* Drag handle */
-        .drag-handle {
-            cursor: grab;
-            color: var(--text-secondary);
-        }
-        
-        .drag-handle:active {
-            cursor: grabbing;
-        }
-    </style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #0f0a1a;
+  --surface: #1a1230;
+  --surface2: #2d1f42;
+  --surface3: #3d2d52;
+  --border: #5a4a7a;
+  --accent: #5ce0d0;
+  --secondary: #a78bfa;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --text: #ffffff;
+  --muted: #b8a7d0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+.monospace { font-family: 'JetBrains Mono', monospace; }
+
+/* ── Navigation ── */
+#nav {
+  display: flex;
+  align-items: center;
+  background: rgba(15, 10, 26, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 8px;
+  gap: 2px;
+  overflow-x: auto;
+}
+
+#nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  flex-shrink: 0;
+}
+
+#nav-brand-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  flex-shrink: 0;
+}
+
+#nav-brand-text {
+  font-size: 15px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-btn {
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nav-btn:hover { color: var(--text); }
+
+.nav-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+#nav-settings-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 8px 10px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+#nav-settings-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Layout ── */
+#tab-content { padding: 20px; max-width: 960px; margin: 0 auto; }
+.hidden { display: none !important; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.justify-between { justify-content: space-between; }
+.align-center { align-items: center; }
+
+/* ── Cards ── */
+.card {
+  background: rgba(45, 31, 66, 0.45);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+
+/* ── Buttons ── */
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface3);
+}
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-green {
+  background: linear-gradient(135deg, var(--green), #059669);
+  border: none;
+  color: #fff;
+}
+
+.btn-green:hover:not(:disabled) {
+  opacity: 0.9;
+  background: linear-gradient(135deg, var(--green), #059669);
+}
+
+.btn-red {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  border: none;
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.btn-accent:hover:not(:disabled) { opacity: 0.9; }
+
+.btn-teal {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  border: none;
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.btn-teal:hover:not(:disabled) { opacity: 0.9; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-red { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.badge-yellow { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+.badge-green { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+.badge-amber { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+
+/* ── Forms ── */
+input[type=text], input[type=number], input[type=time], select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 7px 10px;
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus { border-color: var(--accent); }
+
+/* ── Modals ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 320px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ── Steps (Scan Tab) ── */
+.step {
+  background: rgba(45, 31, 66, 0.45);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(61, 45, 82, 0.5);
+  cursor: pointer;
+  user-select: none;
+}
+
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface3);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.step.active .step-num {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  color: var(--bg);
+}
+
+.step-body { padding: 16px; border-top: 1px solid var(--border); }
+.step.disabled { opacity: 0.4; pointer-events: none; }
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Drop Zone ── */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 32px;
+  text-align: center;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(45, 31, 66, 0.3);
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(92, 224, 208, 0.05);
+  color: var(--accent);
+}
+
+/* ── Pill ── */
+.pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(61, 45, 82, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-top: 8px;
+  transition: border-color 0.2s;
+}
+
+/* ── Pile cards (scan zone counters) ── */
+.pile-card {
+  flex: 1;
+  background: rgba(45, 31, 66, 0.5);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.pile-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(92, 224, 208, 0.15);
+}
+
+.pile-card.complete {
+  border-color: var(--green);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+/* ── Inventory Table ── */
+.inv-table { width: 100%; border-collapse: collapse; }
+.inv-group-header { background: rgba(61, 45, 82, 0.5); border-bottom: 1px solid var(--border); cursor: grab; }
+.inv-group-header td { padding: 8px 12px; font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+.inv-row td { padding: 8px 12px; border-bottom: 1px solid rgba(90, 74, 122, 0.3); }
+.inv-row:hover td { background: rgba(45, 31, 66, 0.4); }
+.drag-handle { color: var(--muted); cursor: grab; padding-right: 8px; user-select: none; }
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.qty-btn:hover { border-color: var(--accent); background: var(--surface3); }
+.stock-num { display: inline-block; min-width: 40px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; cursor: text; font-family: 'JetBrains Mono', monospace; }
+
+/* ── Color swatch ── */
+.color-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+/* ── Hold Panel & Batch Cards ── */
+.hold-panel {
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.05);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.batch-card {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: rgba(61, 45, 82, 0.4);
+}
+
+/* ── Attention items ── */
+.attention-out {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 3px solid var(--red);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.attention-short {
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 3px solid var(--yellow);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+/* ── Toast notifications ── */
+#toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 220px;
+  animation: toastIn 0.25s ease;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+.toast.success { border-color: rgba(16,185,129,0.5); color: #6ee7b7; }
+.toast.error   { border-color: rgba(239,68,68,0.5); color: #fca5a5; }
+.toast.warn    { border-color: rgba(245,158,11,0.5); color: #fcd34d; }
+
+@keyframes toastIn {
+  from { transform: translateX(40px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+/* ── Scanner input hidden ── */
+#scan-input { position: absolute; opacity: 0; pointer-events: none; }
+
+/* ── Vault ── */
+#vault-panel {
+  display: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(45, 31, 66, 0.4);
+  padding: 12px;
+  margin-top: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+#vault-panel.open { display: block; }
+
+.vault-date-header {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 0 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+}
+
+.vault-date-header:first-child { border-top: none; margin-top: 0; }
+
+.vault-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+
+.vault-file-row:hover { background: rgba(90, 74, 122, 0.4); }
+
+/* ── Picking mode ── */
+body.picking-mode #pick-list-sec {
+  position: fixed; inset: 0; z-index: 400;
+  background: var(--bg); overflow-y: auto;
+  padding: 20px; border-radius: 0; margin: 0;
+}
+body.picking-mode #pick-groups .pick-name { font-size: 20px; }
+body.picking-mode #pick-groups .pick-qty  { font-size: 24px; font-weight: 700; color: var(--accent); }
+body.picking-mode #pick-groups .pick-stock { font-size: 15px; }
+body.picking-mode #pick-mode-btn {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  color: var(--bg); border: none;
+}
+
+/* ── Urgency states ── */
+.urgency-green { color: var(--green); }
+.urgency-yellow { color: var(--yellow); }
+.urgency-red { color: var(--red); }
+
+/* ── btn-active (scan log tabs) ── */
+.btn-active {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  border: none;
+  color: var(--bg);
+  font-weight: 600;
+}
+
+@keyframes celebrationFlash {
+  0%   { opacity: 0; transform: scale(0.95); }
+  20%  { opacity: 1; transform: scale(1.02); }
+  80%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+#celebration-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: linear-gradient(135deg,
+    rgba(92,224,208,0.15), rgba(167,139,250,0.15));
+  pointer-events: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#celebration-overlay.active {
+  display: flex;
+  animation: celebrationFlash 2.5s ease forwards;
+}
+
+#celebration-text {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+}
+</style>
 </head>
-<body class="min-h-screen">
-    <div id="app">
-        <!-- Header -->
-        <header>
-            <div class="header-left">
-                <div class="logo"></div>
-                <div class="logo-text">
-                    <h1>ShipKit</h1>
-                    <p>Fulfillment Operations</p>
-                </div>
-            </div>
-            <button onclick="openSettings()" class="btn">⚙️ Settings</button>
-        </header>
-        
-        <!-- Navigation -->
-        <nav>
-            <button class="tab-btn active" onclick="switchTab('scan', this)">SCAN</button>
-            <button class="tab-btn" onclick="switchTab('pick', this)">PICK LIST</button>
-            <button class="tab-btn" onclick="switchTab('inventory', this)">INVENTORY</button>
-            <button class="tab-btn" onclick="switchTab('history', this)">HISTORY</button>
-            <button class="tab-btn" onclick="switchTab('analytics', this)">ANALYTICS</button>
-            <button class="tab-btn" onclick="switchTab('reorder', this)">REORDER</button>
-            <button class="tab-btn" onclick="switchTab('finance', this)">FINANCE</button>
-        </nav>
-        
-        <!-- Main Content -->
-        <main>
-            <!-- SCAN TAB -->
-            <div id="tab-scan" class="tab-content active">
-                <div class="card">
-                    <h2><span class="step-badge">0</span> File Vault</h2>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">View and manage saved batches</p>
-                    <button class="btn" onclick="showToast('File Vault coming soon')">📁 Open Vault</button>
-                </div>
-                
-                <div class="card">
-                    <h2><span class="step-badge">1</span> Upload Files</h2>
-                    <input type="file" multiple onchange="handleFileUpload(event)" accept=".pdf,.csv" style="padding: 1rem; border: 2px dashed var(--border); border-radius: 0.5rem; cursor: pointer;">
-                </div>
-                
-                <div class="card">
-                    <h2><span class="step-badge">2</span> Print Labels <span style="color: var(--text-secondary); font-size: 0.875rem;">0/0 Printed</span></h2>
-                    <p style="color: var(--text-secondary);">Upload label PDFs to track printing</p>
-                </div>
-                
-                <div class="card">
-                    <h2><span class="step-badge">3</span> Scan Packages <span style="color: var(--text-secondary); font-size: 0.875rem;">0 Scanned</span></h2>
-                    <button id="armBtn" class="btn" onclick="toggleScanner()">Arm Scanner</button>
-                    <input type="text" id="scanInput" placeholder="Scan tracking number..." style="margin-top: 1rem; display: none;">
-                </div>
-                
-                <div class="card">
-                    <h2><span class="step-badge">4</span> Print USPS Slips <span style="color: var(--text-secondary); font-size: 0.875rem;">0/0 Printed</span></h2>
-                    <p style="color: var(--text-secondary);">Upload slip files to track printing</p>
-                </div>
-                
-                <div class="card">
-                    <h2><span class="step-badge">5</span> Ship & Archive</h2>
-                    <button class="btn btn-primary" onclick="shipBatch()">📦 Ship Batch</button>
-                </div>
-            </div>
-            
-            <!-- PICK LIST TAB -->
-            <div id="tab-pick" class="tab-content">
-                <div class="card">
-                    <h2>Pick List</h2>
-                    <p style="color: var(--text-secondary);">Upload manifest CSV to generate pick list</p>
-                </div>
-            </div>
-            
-            <!-- INVENTORY TAB -->
-            <div id="tab-inventory" class="tab-content">
-                <div class="card">
-                    <h2>Inventory</h2>
-                    <p style="color: var(--text-secondary);">Manage stock levels</p>
-                </div>
-            </div>
-            
-            <!-- HISTORY TAB -->
-            <div id="tab-history" class="tab-content">
-                <div class="card">
-                    <h2>History</h2>
-                    <p style="color: var(--text-secondary);">View past shipments</p>
-                </div>
-            </div>
-            
-            <!-- ANALYTICS TAB -->
-            <div id="tab-analytics" class="tab-content">
-                <div class="card">
-                    <h2>Analytics</h2>
-                    <p style="color: var(--text-secondary);">📊 Coming soon</p>
-                </div>
-            </div>
-            
-            <!-- REORDER TAB -->
-            <div id="tab-reorder" class="tab-content">
-                <div class="card">
-                    <h2>Reorder</h2>
-                    <p style="color: var(--text-secondary);">🔄 Coming soon</p>
-                </div>
-            </div>
-            
-            <!-- FINANCE TAB -->
-            <div id="tab-finance" class="tab-content">
-                <div class="card">
-                    <h2>Finance</h2>
-                    <p style="color: var(--text-secondary);">💰 Coming soon</p>
-                </div>
-            </div>
-        </main>
-                    </svg>
-                </button>
-            </div>
-            
-            <!-- Tab Navigation (7 tabs) -->
-            <div class="tab-nav">
-                <button class="tab-btn active" onclick="switchTab('scan', this)">SCAN</button>
-                <button class="tab-btn" onclick="switchTab('pick', this)">PICK LIST</button>
-                <button class="tab-btn" onclick="switchTab('inventory', this)">INVENTORY</button>
-                <button class="tab-btn" onclick="switchTab('history', this)">HISTORY</button>
-                <button class="tab-btn" onclick="switchTab('analytics', this)">ANALYTICS</button>
-                <button class="tab-btn" onclick="switchTab('reorder', this)">REORDER</button>
-                <button class="tab-btn" onclick="switchTab('finance', this)">FINANCE</button>
-            </div>
-        </header>
-        
-        <!-- Main Content -->
-        <main class="p-6 max-w-7xl mx-auto">
-            
-            <!-- SCAN TAB -->
-            <div id="tab-scan" class="tab-content space-y-6">
-                <!-- Step 0: File Vault -->
-                <div class="card">
-                    <div class="collapse-header" onclick="toggleCollapse(this)">
-                        <div class="step-badge">📦</div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold">Step 0 - File Vault</h3>
-                            <p class="text-xs" style="color: var(--text-secondary);">Saved batches (drag from vault to upload)</p>
-                        </div>
-                        <svg class="chevron w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </div>
-                    <div class="collapse-body space-y-2">
-                        <div class="text-sm" style="color: var(--text-secondary);">2 saved batches</div>
-                        <div class="space-y-2">
-                            <div class="p-3 rounded" style="background: var(--surface-lighter); border: 1px dashed var(--border); cursor: grab;">
-                                <div class="flex items-center gap-2">
-                                    <svg class="drag-handle w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.5"></circle><circle cx="9" cy="12" r="1.5"></circle><circle cx="9" cy="19" r="1.5"></circle><circle cx="16" cy="5" r="1.5"></circle><circle cx="16" cy="12" r="1.5"></circle><circle cx="16" cy="19" r="1.5"></circle></svg>
-                                    <span class="monospace text-sm">2024-04-14 | Batch #1</span>
-                                    <span class="ml-auto text-xs px-2 py-1 rounded" style="background: rgba(92, 224, 208, 0.1); color: var(--primary);">3 files</span>
-                                </div>
-                            </div>
-                            <div class="p-3 rounded" style="background: var(--surface-lighter); border: 1px dashed var(--border); cursor: grab;">
-                                <div class="flex items-center gap-2">
-                                    <svg class="drag-handle w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="9" cy="5" r="1.5"></circle><circle cx="9" cy="12" r="1.5"></circle><circle cx="9" cy="19" r="1.5"></circle><circle cx="16" cy="5" r="1.5"></circle><circle cx="16" cy="12" r="1.5"></circle><circle cx="16" cy="19" r="1.5"></circle></svg>
-                                    <span class="monospace text-sm">2024-04-13 | Batch #2</span>
-                                    <span class="ml-auto text-xs px-2 py-1 rounded" style="background: rgba(92, 224, 208, 0.1); color: var(--primary);">2 files</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 1: Upload Files -->
-                <div class="card">
-                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
-                        <div class="step-badge">1</div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold">Upload Files</h3>
-                            <p class="text-xs" style="color: var(--text-secondary);">0/3 files uploaded</p>
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <div class="border-2 border-dashed rounded-lg p-8 text-center" style="border-color: var(--border); background: rgba(92, 224, 208, 0.03);">
-                            <input type="file" id="fileInput" multiple accept=".pdf,.csv" class="hidden" onchange="handleFileUpload(event)">
-                            <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                            </svg>
-                            <p style="color: var(--text-secondary);" class="mb-2">Drag labels (PDF), manifests (CSV), slips here</p>
-                            <button onclick="document.getElementById('fileInput').click()" class="btn btn-primary text-sm">Browse Files</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 2: Print Labels -->
-                <div class="card">
-                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
-                        <div class="step-badge">2</div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold">Print Shipping Labels</h3>
-                            <p class="text-xs" style="color: var(--text-secondary);">Printed 0/1</p>
-                        </div>
-                        <button class="btn text-sm">Mark All Printed</button>
-                    </div>
-                    <div class="p-4 space-y-2">
-                        <div class="flex items-center gap-3 p-3 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border);">
-                            <div class="w-6 h-6 rounded-full border-2" style="border-color: var(--primary);"></div>
-                            <span class="flex-1 monospace text-sm">shipping-labels-2024-04-16.pdf</span>
-                            <button class="btn text-xs">Print</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 3: Pick List -->
-                <div class="card hidden">
-                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
-                        <div class="step-badge">3</div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold">Pick List</h3>
-                            <p class="text-xs" style="color: var(--text-secondary);">Picked 0/12 units</p>
-                        </div>
-                        <button class="btn text-sm">Fullscreen Picking</button>
-                    </div>
-                    <div class="p-4">
-                        <!-- Summary Bar -->
-                        <div class="flex gap-4 mb-4 pb-4 border-b" style="border-color: var(--border);">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold gradient-text">12</div>
-                                <p class="text-xs" style="color: var(--text-secondary);">Total Units</p>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold">3</div>
-                                <p class="text-xs" style="color: var(--text-secondary);">Variants</p>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold attention-out">1</div>
-                                <p class="text-xs" style="color: var(--text-secondary);">OUT</p>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold attention-short">2</div>
-                                <p class="text-xs" style="color: var(--text-secondary);">SHORT</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Attention Section -->
-                        <div class="mb-4">
-                            <h4 class="text-sm font-semibold mb-2">⚠️ Attention Items</h4>
-                            <div class="attention-item attention-out">
-                                <div class="font-semibold">OUT: Royal Blue 4-Pack</div>
-                                <div>Need 3 units • Ordered 2024-04-15</div>
-                            </div>
-                            <div class="attention-item attention-short">
-                                <div class="font-semibold">SHORT: Sage Green 2-Pack</div>
-                                <div>Have 1/3 • Suggested: Quick restock</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Pack Type Groups -->
-                        <div class="space-y-3">
-                            <div>
-                                <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
-                                    <span class="step-badge" style="width: 1.5rem; height: 1.5rem; font-size: 0.75rem;">2pk</span>
-                                    2-Pack (5 units)
-                                </h4>
-                                <div class="space-y-1 ml-4">
-                                    <div class="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-opacity-50" style="background: var(--surface-lighter);">
-                                        <input type="checkbox">
-                                        <div class="color-swatch" style="background: #ef4444;"></div>
-                                        <span class="flex-1 text-sm">Red</span>
-                                        <span class="monospace text-xs">2/2</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-opacity-50" style="background: var(--surface-lighter);">
-                                        <input type="checkbox">
-                                        <div class="color-swatch" style="background: #f59e0b;"></div>
-                                        <span class="flex-1 text-sm">Gold</span>
-                                        <span class="monospace text-xs">3/3</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
-                                    <span class="step-badge" style="width: 1.5rem; height: 1.5rem; font-size: 0.75rem;">4pk</span>
-                                    4-Pack (7 units)
-                                </h4>
-                                <div class="space-y-1 ml-4">
-                                    <div class="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-opacity-50" style="background: var(--surface-lighter);">
-                                        <input type="checkbox">
-                                        <div class="color-swatch" style="background: #3b82f6;"></div>
-                                        <span class="flex-1 text-sm">Blue</span>
-                                        <span class="monospace text-xs">0/1</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Dispatch Deadline Banner (shows when CSV uploaded) -->
-                <div class="card hidden urgency-yellow" style="background: rgba(245, 158, 11, 0.05); border-color: var(--border);">
-                    <div class="p-4 flex items-center justify-between">
-                        <div>
-                            <h4 class="font-semibold">Dispatch in 2h 15m</h4>
-                            <p class="text-xs" style="color: var(--text-secondary);">Close window at 5:00 PM • 12 orders ready</p>
-                        </div>
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path></svg>
-                    </div>
-                </div>
-                
-                <!-- Step 4: Scan Packages -->
-                <div class="card">
-                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
-                        <div class="step-badge">4</div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold">Scan Packages</h3>
-                            <p class="text-xs" style="color: var(--text-secondary);">0 scanned</p>
-                        </div>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <button id="armBtn" onclick="toggleScanner()" class="w-full py-4 rounded-lg font-semibold" style="background: var(--surface-lighter); border: 2px solid var(--border);">
-                            Arm Scanner
-                        </button>
-                        <input type="text" id="scanInput" class="hidden-input" style="position: absolute; left: -999px;" onkeydown="handleScan(event)">
-                        
-                        <!-- Pile Cards -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="pile-card text-center">
-                                <div class="text-3xl font-bold gradient-text">0</div>
-                                <p class="text-sm mt-2" style="color: var(--text-secondary);">Manifest 1</p>
-                            </div>
-                            <div class="pile-card text-center">
-                                <div class="text-3xl font-bold">0</div>
-                                <p class="text-sm mt-2" style="color: var(--text-secondary);">Clerk Counter</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Scan Log -->
-                        <div class="border rounded-lg" style="border-color: var(--border);">
-                            <div class="p-3 border-b font-semibold text-sm flex justify-between items-center" style="border-color: var(--border);">
-                                <span>Scan Log</span>
-                                <span id="scanCount" class="text-xs" style="color: var(--text-secondary);">0 scanned</span>
-                            </div>
-                            <div id="scanLog" class="p-4 text-center max-h-48 overflow-y-auto" style="color: var(--text-secondary); font-size: 0.875rem;">
-                                Scans will appear here
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Step 5: Print USPS Slips -->
-                <div class="card">
-                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
-                        <div class="step-badge">5</div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold">Print USPS Manifest Slips</h3>
-                            <p class="text-xs" style="color: var(--text-secondary);">Printed 0/0 (hidden until slips uploaded)</p>
-                        </div>
-                        <button class="btn text-sm" disabled>Mark All Printed</button>
-                    </div>
-                    <div class="p-4 text-center" style="color: var(--text-secondary); padding: 2rem;">
-                        Upload USPS slip files to enable this step
-                    </div>
-                </div>
-                
-                <!-- Step 6: Ship & Archive -->
-                <div class="card">
-                    <div class="flex items-center gap-3 p-4 border-b" style="border-color: var(--border);">
-                        <div class="step-badge">6</div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold">Ship & Archive</h3>
-                            <p class="text-xs" style="color: var(--text-secondary);">Finalize batch and save</p>
-                        </div>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <button onclick="shipBatch()" disabled class="w-full py-4 rounded-lg font-semibold btn-primary">
-                            Ship & Archive Batch
-                        </button>
-                        
-                        <!-- Hold Queue -->
-                        <div class="collapse-header" onclick="toggleCollapse(this)">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 7v5l4 2"></path></svg>
-                            <span>Hold Queue (1)</span>
-                            <svg class="chevron w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                        </div>
-                        <div class="collapse-body">
-                            <div class="p-3 rounded mb-3" style="background: var(--surface-lighter); border: 1px solid var(--border);">
-                                <div class="flex items-start justify-between mb-2">
-                                    <div>
-                                        <div class="font-semibold">Order #SKU-12345</div>
-                                        <p class="text-xs" style="color: var(--text-secondary);">Royal Blue 2-Pack • Customer Request</p>
-                                    </div>
-                                    <span class="text-xs px-2 py-1 rounded urgency-red">60m left</span>
-                                </div>
-                                <button class="btn text-xs">Release Hold</button>
-                            </div>
-                        </div>
-                        
-                        <!-- Batch Summary Cards -->
-                        <div class="grid gap-4 mt-4">
-                            <div class="p-4 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border);">
-                                <h4 class="font-semibold text-sm mb-3">Batch Summary</h4>
-                                <div class="space-y-2 text-sm">
-                                    <div class="flex justify-between">
-                                        <span style="color: var(--text-secondary);">Manifest Zone</span>
-                                        <span>8 packages</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span style="color: var(--text-secondary);">Clerk Counter</span>
-                                        <span>2 packages</span>
-                                    </div>
-                                    <div class="flex justify-between font-semibold pt-2 border-t" style="border-color: var(--border);">
-                                        <span>Total</span>
-                                        <span>10 packages</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="p-4 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border);">
-                                <h4 class="font-semibold text-sm mb-3">Variants Shipped</h4>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="px-2 py-1 rounded text-xs" style="background: rgba(92, 224, 208, 0.2);">Red 2pk</span>
-                                    <span class="px-2 py-1 rounded text-xs" style="background: rgba(92, 224, 208, 0.2);">Blue 4pk</span>
-                                    <span class="px-2 py-1 rounded text-xs" style="background: rgba(92, 224, 208, 0.2);">Gold 2pk</span>
-                                </div>
-                            </div>
-                            
-                            <div class="p-4 rounded text-xs space-y-1" style="background: var(--surface-lighter); border: 1px solid var(--border); color: var(--text-secondary);">
-                                <div>📤 Dropped: 2024-04-16 17:02:14</div>
-                                <div>✓ Carrier Accepted: 2024-04-16 17:15:30</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- INVENTORY TAB -->
-            <div id="tab-inventory" class="tab-content hidden space-y-6">
-                <div class="card">
-                    <div class="p-4 border-b flex justify-between items-center" style="border-color: var(--border);">
-                        <div>
-                            <h2 class="font-semibold">Stock Levels</h2>
-                            <p class="text-xs" style="color: var(--text-secondary);">324 units in stock • 12 shipped today</p>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-bold gradient-text">324</div>
-                            <p class="text-xs" style="color: var(--text-secondary);">Total Units</p>
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <table class="w-full text-sm">
-                            <thead style="border-bottom: 1px solid var(--border);">
-                                <tr>
-                                    <th class="text-left py-2 px-3" style="color: var(--text-secondary);">Color</th>
-                                    <th class="text-left py-2 px-3" style="color: var(--text-secondary);">Pack Type</th>
-                                    <th class="text-center py-2 px-3" style="color: var(--text-secondary);">Stock</th>
-                                    <th class="text-center py-2 px-3" style="color: var(--text-secondary);">Today</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y" style="border-color: var(--border);">
-                                <tr>
-                                    <td class="py-3 px-3 flex items-center gap-2">
-                                        <div class="color-swatch" style="background: #ef4444;"></div>
-                                        <span>Red</span>
-                                    </td>
-                                    <td class="py-3 px-3">2-Pack</td>
-                                    <td class="py-3 px-3 text-center monospace">
-                                        <input type="number" value="48" class="w-12 text-center" style="background: var(--surface-lighter); border: 1px solid var(--border); padding: 0.25rem; border-radius: 0.25rem;">
-                                    </td>
-                                    <td class="py-3 px-3 text-center">
-                                        <span class="px-2 py-1 rounded text-xs" style="background: rgba(92, 224, 208, 0.1); color: var(--primary);">-4</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 px-3 flex items-center gap-2">
-                                        <div class="color-swatch" style="background: #3b82f6;"></div>
-                                        <span>Blue</span>
-                                    </td>
-                                    <td class="py-3 px-3">4-Pack</td>
-                                    <td class="py-3 px-3 text-center monospace">
-                                        <input type="number" value="36" class="w-12 text-center" style="background: var(--surface-lighter); border: 1px solid var(--border); padding: 0.25rem; border-radius: 0.25rem;">
-                                    </td>
-                                    <td class="py-3 px-3 text-center">
-                                        <span class="px-2 py-1 rounded text-xs" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5;">-6</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- HISTORY TAB -->
-            <div id="tab-history" class="tab-content hidden space-y-6">
-                <div class="card">
-                    <div class="p-4 border-b" style="border-color: var(--border);">
-                        <h2 class="font-semibold">Shipping History</h2>
-                    </div>
-                    <div class="p-4 space-y-3">
-                        <div class="p-4 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border);">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <h4 class="font-semibold">Batch #2024-04-16-001</h4>
-                                    <p class="text-xs" style="color: var(--text-secondary);">10 packages • 3 variants</p>
-                                </div>
-                                <span class="text-xs px-2 py-1 rounded" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">Shipped</span>
-                            </div>
-                            <p class="text-xs" style="color: var(--text-secondary);">✓ Dropped: 17:02 • Accepted: 17:15</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- ANALYTICS TAB -->
-            <div id="tab-analytics" class="tab-content hidden space-y-6">
-                <div class="card p-6 text-center" style="color: var(--text-secondary);">
-                    <p>📊 Analytics Dashboard Coming Soon</p>
-                </div>
-            </div>
-            
-            <!-- REORDER TAB -->
-            <div id="tab-reorder" class="tab-content hidden space-y-6">
-                <div class="card p-6 text-center" style="color: var(--text-secondary);">
-                    <p>🔄 Reorder Planning Coming Soon</p>
-                </div>
-            </div>
-            
-            <!-- FINANCE TAB -->
-            <div id="tab-finance" class="tab-content hidden space-y-6">
-                <div class="card p-6 text-center" style="color: var(--text-secondary);">
-                    <p>💰 Finance Dashboard Coming Soon</p>
-                </div>
-            </div>
-        </main>
-    </div>
-    
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="modal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Settings</h2>
-                <button onclick="closeSettings()" class="p-2" style="background: var(--surface-lighter); border: 1px solid var(--border); border-radius: 0.5rem;">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Store Name</label>
-                    <input type="text" placeholder="My TikTok Shop" class="w-full p-2 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border); color: var(--text-primary);">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Carrier Close Time (Weekday)</label>
-                    <input type="time" value="17:00" class="w-full p-2 rounded" style="background: var(--surface-lighter); border: 1px solid var(--border); color: var(--text-primary);">
-                </div>
-                <button class="w-full btn btn-primary mt-6">Save Settings</button>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // Tab switching
-        function switchTab(tabName, btn) {
-            // Hide all tabs
-            const tabs = document.querySelectorAll('.tab-content');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            
-            // Remove active from all buttons
-            const buttons = document.querySelectorAll('.tab-btn');
-            buttons.forEach(b => b.classList.remove('active'));
-            
-            // Show selected tab and mark button active
-            const tabElement = document.getElementById('tab-' + tabName);
-            if (tabElement) {
-                tabElement.classList.add('active');
-            }
-            if (btn) {
-                btn.classList.add('active');
-            }
-        }
-        
-        // File upload
-        function handleFileUpload(e) {
-            const files = Array.from(e.target.files);
-            if (files.length > 0) {
-                showToast(`${files.length} file(s) uploaded successfully`);
-            }
-        }
-        
-        // Scanner
-        let isArmed = false;
-        function toggleScanner() {
-            const btn = document.getElementById('armBtn');
-            const input = document.getElementById('scanInput');
-            isArmed = !isArmed;
-            
-            if (isArmed) {
-                btn.textContent = '🔴 Scanner Armed';
-                btn.classList.add('urgency-red');
-                input.style.display = 'block';
-                input.focus();
-            } else {
-                btn.textContent = 'Arm Scanner';
-                btn.classList.remove('urgency-red');
-                input.style.display = 'none';
-            }
-        }
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            const scanInput = document.getElementById('scanInput');
-            if (scanInput) {
-                scanInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && isArmed) {
-                        const tracking = e.target.value.trim();
-                        if (tracking) {
-                            showToast(`Scanned: ${tracking}`);
-                            e.target.value = '';
-                        }
-                    }
-                });
-            }
-        });
-        
-        // Ship batch
-        function shipBatch() {
-            showToast('Batch shipped and archived! 📦', 'success');
-        }
-        
-        // Toast notifications
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            if (type === 'success') {
-                toast.style.borderColor = '#10b981';
-            }
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
-        }
-        
-        // Settings
-        function openSettings() {
-            document.getElementById('settingsModal').classList.add('active');
-        }
-        
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.remove('active');
-        }
-        
-        // Close modal when clicking outside
-        document.addEventListener('click', function(e) {
-            const modal = document.getElementById('settingsModal');
-            if (e.target === modal) {
-                closeSettings();
-            }
-        });
-    </script>
+<body>
+   <div id="nav">
+     <div id="nav-brand">
+       <div id="nav-brand-icon"></div>
+       <span id="nav-brand-text">ShipKit</span>
+     </div>
+     <span id="offline-badge"
+       style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;
+       background:rgba(16,185,129,0.15);color:#6ee7b7;
+       border:1px solid rgba(16,185,129,0.3);letter-spacing:0.5px;
+       flex-shrink:0;display:none">
+       OFFLINE
+     </span>
+     <button class="nav-btn active" onclick="switchTab('scan')">SCAN</button>
+     <button class="nav-btn" onclick="switchTab('inventory')">
+       INVENTORY <span id="inv-badge" class="badge badge-red hidden">!</span>
+     </button>
+     <button class="nav-btn" onclick="switchTab('history')">HISTORY</button>
+     <button class="nav-btn" onclick="switchTab('analytics')">ANALYTICS</button>
+     <button class="nav-btn" onclick="switchTab('reorder')">REORDER</button>
+     <button class="nav-btn" onclick="switchTab('finance')">FINANCE</button>
+     <button id="nav-settings-btn" onclick="openSettings()">&#9881;</button>
+   </div>
+   <div id="tab-content"></div>
+   <div id="toast-container"></div>
+
+   <script>
+   // PDF.js worker config
+   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+   // --- GLOBALS & API LAYER ---
+   const S = {
+     inventory: [], colorOrder: [], batches: [], held: [],
+     sessions: [], shippedT: new Set(), settings: {}, todayDelta: {}, returns: [],
+     labelFiles: [], csvOrders: [], uspsSlips: [], session: {},
+     printedFileNames: new Set(), slipPrintedNames: new Set()
+   };
+
+   // API layer — replaces IndexedDB, reads/writes real files via Python server
+   const API = {
+     async get(key) {
+       try {
+         const r = await fetch('/api/data/' + key);
+         if (!r.ok) return null;
+         return await r.json();
+       } catch { return null; }
+     },
+     async set(key, value) {
+       try {
+         await fetch('/api/data/' + key, {
+           method: 'POST',
+           headers: {'Content-Type': 'application/json'},
+           body: JSON.stringify(value)
+         });
+       } catch(e) { console.error('API.set failed:', key, e); }
+     },
+     async uploadFile(file) {
+       try {
+         const fd = new FormData();
+         fd.append('file', file);
+         const r = await fetch('/api/upload', {method:'POST', body:fd});
+         return await r.json();
+       } catch(e) { console.error('API.uploadFile failed:', e); return null; }
+     },
+     async getFile(filename) {
+       try {
+         const r = await fetch('/api/file/' + encodeURIComponent(filename));
+         if (!r.ok) return null;
+         return await r.arrayBuffer();
+       } catch { return null; }
+     }
+   };
+
+   async function saveS(key) {
+     const keyMap = {
+       inventory: 'inventory',
+       colorOrder: 'color_order',
+       batches: 'batches',
+       held: 'held',
+       sessions: 'sessions',
+       settings: 'settings',
+       todayDelta: 'today_delta',
+       returns: 'returns',
+       shippedT: 'shipped_trackings'
+     };
+     const val = key === 'shippedT' ? [...S.shippedT] : S[key];
+     await API.set(keyMap[key] || key, val);
+   }
+
+   const DEFAULT_COLORS = ['Black','White','Gray','Navy','Red','Royal Blue','Forest Green','Burgundy','Purple','Pink','Orange','Yellow','Brown','Tan','Teal','Coral'];
+   const DEFAULT_PACKS = ['2pk','4pk','4pk NL'];
+   const DEFAULT_SETTINGS = {
+     carrierCloseTime:'17:00', travelMinutes:30,
+     zoneNames:{primary:'Sort Zone 1', secondary:'Clerk Counter'},
+     lowThreshold:10, packOrder:['2pk','4pk','4pk NL'],
+     volume:80, proMode:false
+   };
+
+   // --- UTILS ---
+   const normT = t => t.replace(/^420\d{5}/, '').trim();
+   const getEl = id => document.getElementById(id);
+
+   function showToast(msg, type) {
+     const t = document.createElement('div');
+     t.className = 'toast' + (type ? ' ' + type : '');
+     t.textContent = msg;
+     const c = document.getElementById('toast-container');
+     if (c) c.appendChild(t);
+     setTimeout(() => {
+       t.style.opacity = '0';
+       t.style.transition = 'opacity 0.3s';
+       setTimeout(() => t.remove(), 300);
+     }, 3500);
+   }
+   
+   function showCelebration(label) {
+     const el = document.getElementById('celebration-overlay');
+     const txt = document.getElementById('celebration-text');
+     if (txt) txt.textContent = label || 'Batch Shipped!';
+     if (el) {
+       el.classList.add('active');
+       setTimeout(() => el.classList.remove('active'), 2500);
+     }
+   }
+   
+   function setPrinter(type) {
+     document.getElementById('printer-4x6-btn').style.background =
+       type === '4x6' ? 'var(--accent)' : '';
+     document.getElementById('printer-8x11-btn').style.background =
+       type === '8x11' ? 'var(--accent)' : '';
+   }
+   
+   function speak(text) {
+     if (!S.settings.volume) return;
+     const u = new SpeechSynthesisUtterance(text);
+     u.volume = S.settings.volume / 100;
+     window.speechSynthesis.speak(u);
+   }
+   
+   function beep(type = 'ok') {
+     if (!S.settings.volume) return;
+     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+     const osc = ctx.createOscillator();
+     const gain = ctx.createGain();
+     osc.connect(gain); gain.connect(ctx.destination);
+     osc.type = type === 'error' ? 'sawtooth' : 'sine';
+     osc.frequency.value = type === 'error' ? 200 : (type === 'done' ? 600 : 400);
+     gain.gain.setValueAtTime(S.settings.volume / 100, ctx.currentTime);
+     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+     osc.start(); osc.stop(ctx.currentTime + 0.3);
+   }
+
+   // --- RENDERERS ---
+   function renderScanTab() {
+     return `
+       <!-- Step 1: Upload Files -->
+       <div class="step active" id="step-upload-card">
+         <div class="step-header" onclick="getEl('upload-body').classList.toggle('hidden')">
+           <div class="step-num">1</div><b style="font-size:16px;">Upload Files</b>
+         </div>
+         <div class="step-body" id="upload-body">
+           <div class="drop-zone" id="drop-zone" onclick="getEl('file-input').click()" ondragover="event.preventDefault(); this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+             <i>Drag & Drop PDF Labels, CSV Manifests, and USPS Slips here</i><br>
+             <span style="font-size:12px;opacity:0.7">(Auto-detects file type)</span>
+           </div>
+           <input type="file" id="file-input" class="hidden" multiple accept=".pdf,.csv" onchange="handleFiles(event.target.files)">
+           
+           <div id="file-checklists" class="flex flex-col gap-2" style="margin-top:16px"></div>
+           <!-- Vault button row -->
+           <div class="flex" style="gap:8px;margin-top:10px">
+             <button class="btn" id="vault-toggle-btn"
+               onclick="toggleVault()">&#128193; Browse Vault</button>
+             <span id="vault-status"
+               style="font-size:12px;color:var(--muted);align-self:center"></span>
+           </div>
+           <!-- Vault panel -->
+           <div id="vault-panel"></div>
+           <div id="recon-banner" style="margin-top:12px"></div>
+           <div class="flex justify-between" style="margin-top:12px">
+             <button class="btn btn-red hidden" id="clear-scans-btn" onclick="clearFilesAndScans()">Clear Files & Scans</button>
+           </div>
+         </div>
+       </div>
+
+       <!-- Step 2: Print Labels -->
+       <div class="step active" id="step-print-card">
+         <div class="step-header" onclick="getEl('print-body').classList.toggle('hidden')">
+           <div class="step-num">2</div><b style="font-size:16px;flex:1">Print Labels & Packing Slips</b>
+           <span id="print-badge" class="badge hidden"></span>
+         </div>
+         <div class="step-body" id="print-body">
+           <div id="print-list" class="flex flex-col gap-2"><i>Upload labels to see them here</i></div>
+         </div>
+       </div>
+
+       <!-- Pick List [NEW DYNAMIC] -->
+       <div class="card hidden" id="pick-list-sec">
+         <div class="flex justify-between align-center" style="margin-bottom:8px">
+           <div style="display:flex;align-items:center;gap:12px">
+             <b style="font-size:15px">Pick List</b>
+             <button class="btn btn-accent" id="pick-mode-btn" onclick="togglePickMode()" style="padding:4px 10px;font-size:12px;border-radius:4px">Enter Picking Mode 🔍</button>
+           </div>
+           <button class="btn" onclick="togglePickListVis()" id="pick-toggle-btn" style="padding:2px 8px;font-size:11px">Collapse</button>
+         </div>
+         <div id="pick-list-wrap">
+           <div id="pick-list-summary" style="font-size:12px;color:var(--muted);margin-bottom:12px"></div>
+           <div id="pick-groups" style="display:grid;gap:8px"></div>
+         </div>
+       </div>
+
+       <!-- Step 3: Scan Packages -->
+       <div class="step disabled" id="step-scan-card">
+         <div class="step-header">
+           <div class="step-num">3</div><b style="font-size:16px;flex:1">Scan Packages</b>
+           <span id="sla-countdown" class="badge hidden"></span>
+         </div>
+         <div class="step-body">
+           <div class="flex gap-4 align-center" style="margin-bottom:16px">
+             <button class="btn btn-accent" id="arm-scanner-btn" onclick="armScanner()">Arm Scanner</button>
+             <span id="scan-progress-text">0/0 sorted</span>
+             <span id="daily-progress-text"
+               style="font-size:11px;color:var(--muted);margin-left:8px"></span>
+           </div>
+           <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+             <span id="batch-start-label" style="font-size:11px;color:var(--muted)"></span>
+           </div>
+           <div id="deadline-banner" style="display:none;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:13px;font-weight:500"></div>
+           <div id="pile-cards" class="flex gap-4" style="flex-wrap:wrap;margin-bottom:16px"></div>
+           <input type="text" id="scan-input" onkeydown="if(event.key==='Enter') handleScan(this.value)">
+           <div style="margin-top:16px">
+             <div style="display:flex;gap:8px;margin-bottom:8px">
+               <button id="log-tab-variant" class="btn btn-active" onclick="setLogView('variant')" style="padding:4px 10px;font-size:12px">Variant</button>
+               <button id="log-tab-tracking" class="btn" onclick="setLogView('tracking')" style="padding:4px 10px;font-size:12px">Tracking</button>
+               <button id="log-tab-product" class="btn" onclick="setLogView('product')" style="padding:4px 10px;font-size:12px">Product</button>
+               <button class="btn" onclick="exportScans()" style="padding:4px 10px;font-size:12px;margin-left:auto">⬇ Export</button>
+             </div>
+             <div id="scan-log" style="max-height:200px;overflow-y:auto;font-size:12px;color:var(--muted)"></div>
+           </div>
+         </div>
+       </div>
+
+       <!-- Step 4: Print USPS Slips -->
+       <div class="step" id="step-slips-card">
+         <div class="step-header" onclick="getEl('slips-body').classList.toggle('hidden')">
+           <div class="step-num">4</div><b style="font-size:16px;flex:1">Print USPS Slips</b>
+         </div>
+         <div class="step-body" id="slips-body">
+           <div id="slips-list" class="flex flex-col gap-2"><i style="color:var(--muted)">No USPS slips uploaded yet</i></div>
+         </div>
+       </div>
+
+       <!-- Step 5: Ship & Archive -->
+       <div class="step active" id="step-archive-card">
+         <div class="step-header">
+           <div class="step-num">5</div><b style="font-size:16px;flex:1">Ship & Archive</b>
+         </div>
+         <div class="step-body">
+           <button id="smart-ship-btn" class="btn" style="width:100%; padding: 12px; font-size:15px;" disabled onclick="handleSmartShip()">Ship & Save</button>
+           
+           <div id="hold-subpanel" class="hold-panel" style="margin-top:16px">
+             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer" onclick="toggleHoldPanel()">
+               <span style="color:var(--yellow);font-weight:700">&#9208; HOLD</span>
+               <span id="hold-count-badge" class="badge badge-yellow" style="display:none">0</span>
+               <span style="flex:1"></span>
+               <button class="btn" id="hold-clear-btn" style="padding:3px 8px;font-size:11px;display:none" onclick="event.stopPropagation();clearHolds()">Clear Hold</button>
+               <button class="btn" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();logCancellationNew()">+ Log Cancellation</button>
+               <span id="hold-chevron" style="color:var(--muted);font-size:14px;margin-left:4px">v</span>
+             </div>
+             <div id="hold-list-wrap">
+               <div id="hold-list"><i style="color:var(--muted)">No packages on hold</i></div>
+             </div>
+           </div>
+
+           <div id="batch-cards" style="margin-top:16px"></div>
+         </div>
+       </div>
+     `;
+   }
+
+   function renderInvTab() {
+     return `
+       <div class="flex justify-between align-center" style="margin-bottom:16px; font-size:13px; color:var(--muted)">
+         <span id="inv-stats-bar">Total Units: 0 &middot; SKUs In Stock: 0 &middot; Low Stock: 0 &middot; Out of Stock: 0</span>
+         <div class="flex gap-2">
+            <button class="btn" onclick="invAction('all')">Apply to All</button>
+            <button class="btn" onclick="invAction('selected')">Apply to Selected</button>
+         </div>
+       </div>
+       <div class="card" style="padding:0; overflow:hidden;">
+         <table class="inv-table" id="inv-table"></table>
+       </div>
+     `;
+   }
+
+   function renderHistoryTab() {
+     let proUI = '';
+     if (S.settings.proMode) {
+       proUI = `
+       <div class="step" style="margin-top:32px">
+         <div class="step-header" onclick="getEl('dispute-body').classList.toggle('hidden')">
+           <b style="font-size:15px">📋 Dispute Templates</b>
+         </div>
+         <div class="step-body hidden" id="dispute-body">
+           <input type="text" id="dispute-tracking-input" placeholder="Paste Tracking Number here..." oninput="updateTemplates(this.value)" style="margin-bottom:12px">
+           <div class="flex gap-4">
+             <div class="card" style="flex:1">
+               <b>Item Not Received (INR)</b><br>
+               <textarea id="tpl-inr" style="width:100%; height:100px; margin-top:8px; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:8px" readonly></textarea>
+               <button class="btn" style="margin-top:8px; width:100%" onclick="copyTpl('inr')">📋 Copy</button>
+             </div>
+             <div class="card" style="flex:1">
+               <b>Item Not As Described (INAD)</b><br>
+               <textarea id="tpl-inad" style="width:100%; height:100px; margin-top:8px; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:8px" readonly></textarea>
+               <button class="btn" style="margin-top:8px; width:100%" onclick="copyTpl('inad')">📋 Copy</button>
+             </div>
+           </div>
+         </div>
+       </div>
+
+       <div class="step">
+         <div class="step-header" onclick="getEl('returns-body').classList.toggle('hidden')">
+           <b style="font-size:15px">🔄 Returns Analytics Log</b>
+         </div>
+         <div class="step-body hidden" id="returns-body">
+           <form onsubmit="logReturn(event)" class="card" style="margin-bottom:16px">
+              <div class="flex gap-4" style="margin-bottom:12px">
+                 <input type="text" id="ret-order" placeholder="Order ID / Tracking" required style="flex:1">
+                 <input type="text" id="ret-sku" placeholder="SKU / Variant" required style="flex:1">
+              </div>
+              <div class="flex gap-4" style="margin-bottom:12px">
+                 <select id="ret-reason" style="flex:1">
+                   <option value="not_received">Not Received (INR)</option>
+                   <option value="defective">Defective / Damaged</option>
+                   <option value="wrong_item">Wrong Item Sent</option>
+                   <option value="buyer_remorse">Buyer Remorse</option>
+                 </select>
+                 <select id="ret-res" style="flex:1">
+                   <option value="refunded">Refunded</option>
+                   <option value="replaced">Replacement Sent</option>
+                   <option value="disputed">Disputed / Won</option>
+                 </select>
+              </div>
+              <div class="flex gap-4 align-center">
+                 <input type="number" id="ret-loss" placeholder="Est. Loss $" step="0.01" style="flex:1">
+                 <button type="submit" class="btn btn-teal" style="flex:1">Log Return</button>
+              </div>
+           </form>
+           <div id="returns-list"></div>
+         </div>
+       </div>
+       `;
+     } else {
+       proUI = `
+       <div class="step" style="margin-top:32px; opacity:0.6; text-align:center">
+         <i>Upgrade to Pro via Settings to unlock Dispute Templates & Returns Analytics</i>
+       </div>
+       `;
+     }
+
+     return `
+       <div id="history-feed"></div>
+       ${proUI}
+     `;
+   }
+
+   // --- TAB ROUTING ---
+   function switchTab(name) {
+     document.querySelectorAll('.nav-btn').forEach((b,i) => {
+       b.classList.toggle('active', ['scan','inventory','history','analytics','reorder','finance'][i] === name);
+     });
+     const tc = getEl('tab-content');
+     if (name === 'scan') tc.innerHTML = renderScanTab();
+     else if (name === 'inventory') tc.innerHTML = renderInvTab();
+     else if (name === 'history') tc.innerHTML = renderHistoryTab();
+     else if (name === 'analytics') tc.innerHTML = renderAnalyticsTab();
+     else if (name === 'reorder') tc.innerHTML = renderReorderTab();
+     else if (name === 'finance') tc.innerHTML = renderFinanceTab();
+     postRender(name);
+   }
+
+   function renderAnalyticsTab() {
+     return '<div class="card" style="text-align:center;padding:48px;color:var(--muted)">' +
+       '<div style="font-size:32px;margin-bottom:12px">&#128202;</div>' +
+       '<div style="font-size:16px;font-weight:600">Analytics</div>' +
+       '<div style="font-size:13px;margin-top:8px">Coming soon</div></div>';
+   }
+
+   function renderReorderTab() {
+     return '<div class="card" style="text-align:center;padding:48px;color:var(--muted)">' +
+       '<div style="font-size:32px;margin-bottom:12px">&#128260;</div>' +
+       '<div style="font-size:16px;font-weight:600">Reorder Planning</div>' +
+       '<div style="font-size:13px;margin-top:8px">Coming soon</div></div>';
+   }
+
+   function renderFinanceTab() {
+     return '<div class="card" style="text-align:center;padding:48px;color:var(--muted)">' +
+       '<div style="font-size:32px;margin-bottom:12px">&#128176;</div>' +
+       '<div style="font-size:16px;font-weight:600">Finance</div>' +
+       '<div style="font-size:13px;margin-top:8px">Coming soon</div></div>';
+   }
+
+   function postRender(name) { 
+     if (name === 'scan') updateScanUI();
+     if (name === 'inventory') renderInvTable();
+     if (name === 'history') {
+       renderHistoryFeed();
+       if (S.settings.proMode) updateReturnsUI();
+     }
+   }
+
+   // --- SCAN TAB LOGIC & STATE ---
+   const APP_STATE = {
+     trackingsToScan: new Set(),
+     variantsToPick: {}, 
+     scanned: [],
+     csvLoaded: false,
+     labelsLoaded: false,
+     slipsLoaded: false
+   };
+
+   let batchStartTime = null;
+   let deadlineInterval = null;
+
+   async function handleFiles(files) {
+     for (const f of files) {
+       const buf = await f.arrayBuffer();
+       const lowerName = f.name.toLowerCase();
+
+       if (lowerName.endsWith('.csv')) {
+         const txt = new TextDecoder().decode(buf);
+         parseCSV(txt);
+         API.uploadFile(f);
+         APP_STATE.csvLoaded = true;
+         updateScanUI();
+
+       } else if (lowerName.endsWith('.pdf')) {
+         const isSlip = !lowerName.includes('label') &&
+           (lowerName.startsWith('wsos') ||
+            lowerName.includes('manifest') ||
+            lowerName.includes('form') ||
+            lowerName.includes('slip'));
+
+         if (isSlip) {
+           const bufCopy = buf.slice(0);
+           if (!S.uspsSlips) S.uspsSlips = [];
+           S.uspsSlips.push({name: f.name, data: bufCopy, savedAt: Date.now()});
+           API.uploadFile(f);
+           APP_STATE.slipsLoaded = true;
+           // Unhide slip print section
+           const slipCard = document.getElementById('step-slips-card');
+           if (slipCard) slipCard.classList.remove('hidden');
+           updateSlipPrintSection();
+           updateScanUI();
+         } else {
+           const bufCopy = buf.slice(0);
+           API.uploadFile(f);
+           const trackings = await extractPDFTrackings(buf);
+           if (!S.labelFiles) S.labelFiles = [];
+           S.labelFiles.push({name: f.name, trackings, data: bufCopy, savedAt: Date.now()});
+           APP_STATE.labelsLoaded = true;
+           updatePrintSection();
+           updateScanUI();
+         }
+       }
+     }
+     updateScanUI();
+   }
+
+   function parseCSV(csvText) {
+     const lines = csvText.split('\n').map(l => l.trim()).filter(l => l);
+     if (lines.length < 2) return;
+
+     // Handle quoted CSV properly
+     function parseCSVLine(line) {
+       const cols = [];
+       let cur = '', inQ = false;
+       for (let i = 0; i < line.length; i++) {
+         const ch = line[i];
+         if (ch === '"' && !inQ) { inQ = true; }
+         else if (ch === '"' && inQ && line[i+1] === '"') { cur += '"'; i++; }
+         else if (ch === '"' && inQ) { inQ = false; }
+         else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+         else { cur += ch; }
+       }
+       cols.push(cur.trim());
+       return cols;
+     }
+
+     const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim());
+
+     // Tracking column — TikTok uses "tracking number" or "order/tracking number"
+     let trkCol = headers.findIndex(h => h.includes('tracking'));
+     // Variant column — TikTok uses "sku name", "variation", "product name"
+     let varCol = headers.findIndex(h => h.includes('variation') || h.includes('variant'));
+     if (varCol < 0) varCol = headers.findIndex(h => h.includes('sku'));
+     if (varCol < 0) varCol = headers.findIndex(h => h.includes('product'));
+     // Date column
+     let dateCol = headers.findIndex(h => h.includes('time') || (h.includes('order') && h.includes('date')));
+
+     // Debug: log detected columns to console
+     console.log('[ShipKit CSV] headers:', headers);
+     console.log('[ShipKit CSV] tracking col:', trkCol, '| variant col:', varCol, '| date col:', dateCol);
+
+     APP_STATE.variantsToPick = {};
+     APP_STATE.csvOrders = [];
+
+     for (let i = 1; i < lines.length; i++) {
+       const cols = parseCSVLine(lines[i]);
+       const t = trkCol >= 0 ? (cols[trkCol] || '').replace(/^420\d{5}/, '').trim() : '';
+       const v = varCol >= 0 ? (cols[varCol] || '').trim() : '';
+       const d = dateCol >= 0 ? (cols[dateCol] || '') : '';
+       if (v && v.length > 1 && v.length < 80) {
+         APP_STATE.variantsToPick[v] = (APP_STATE.variantsToPick[v] || 0) + 1;
+       }
+       if (t) APP_STATE.csvOrders.push({tracking: t, variant: v, orderDate: d});
+     }
+
+     if (!APP_STATE.trackingsToScan) APP_STATE.trackingsToScan = new Set();
+     APP_STATE.csvOrders.forEach(o => { if (o.tracking) APP_STATE.trackingsToScan.add(o.tracking); });
+
+     console.log('[ShipKit CSV] variants to pick:', APP_STATE.variantsToPick);
+     console.log('[ShipKit CSV] trackings to scan:', APP_STATE.trackingsToScan.size);
+
+     startBatchTimer();
+   }
+
+   async function extractPDFTrackings(buf) {
+     const trackingsList = [];
+     const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+     // USPS tracking regex (generic, e.g., 92, 93, 94 prefixes, removing 420+ZIP)
+     const trackingRegex = /\b9\d{21}\b/g;
+     
+     for (let i = 1; i <= pdf.numPages; i++) {
+       const page = await pdf.getPage(i);
+       const textReq = await page.getTextContent();
+       let text = textReq.items.map(s => s.str).join(' ');
+        text = text.replace(/420\\s*\\d{5}/g, '');
+        const matches = text.match(trackingRegex) || [];
+       for (const m of matches) {
+         APP_STATE.trackingsToScan.add(m);
+         trackingsList.push(m);
+       }
+     }
+     // Cross-reference checking
+     let alreadyShipped = 0;
+     for (let t of APP_STATE.trackingsToScan) {
+       if (S.shippedT.has(t)) {
+         alreadyShipped++;
+         APP_STATE.trackingsToScan.delete(t);
+       }
+      }
+      if (alreadyShipped > 0) {
+        getEl('recon-banner').innerHTML = `<div class="badge badge-red" style="padding:4px 8px; font-size:12px; display:block">⚠ ${alreadyShipped} trackings already shipped and removed from expected count.</div>`;
+      }
+      return trackingsList;
+    }
+
+  function parseVariantString(str) {
+    if (!str) return null;
+    const s = str.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const sLow = s.toLowerCase();
+
+    const ALIASES = {
+      'metallic red':  'Metallic Red',
+      'dark blue':     'Dark Blue',
+      'hot pink':      'Hot Pink',
+      'royal blue':    'Royal Blue',
+      'charcoal':      'Charcoal',
+      'dark gray':     'Charcoal',
+      'dark grey':     'Charcoal',
+      'forest green':  'Forest Green',
+      'electric blue': 'Blue',
+      'navy blue':     'Navy'
+    };
+
+    const COLORS = [
+      'Metallic Red','Dark Blue','Hot Pink','Forest Green',
+      'Royal Blue','Burgundy','Charcoal','Purple','Orange',
+      'Coral','Black','White','Gray','Navy','Pink','Red',
+      'Yellow','Brown','Gold','Teal','Blue','Green','Tan'
+    ];
+
+    let color = null;
+    for (const [alias, canonical] of Object.entries(ALIASES)) {
+      if (sLow.includes(alias)) { color = canonical; break; }
+    }
+    if (!color) {
+      for (const c of COLORS) {
+        if (sLow.includes(c.toLowerCase())) { color = c; break; }
+      }
+    }
+
+    let pack = null;
+    if (/no\s*la[yny]+r?d?/i.test(s) || /\(no\s/i.test(s) || /4[- ]?pack\s*\(no/i.test(s) || /\bnl\b/i.test(s)) {
+      pack = '4 Pack No Lanyard';
+    } else if (/\b4[\s\-]?p(k|ack)\b/i.test(s) || /\b4\s*-\s*\d/i.test(s)) {
+      pack = '4 Pack';
+    } else if (/\b2[\s\-]?p(k|ack)\b/i.test(s)) {
+      pack = '2 Pack';
+    }
+
+    if (!color || !pack) return null;
+    return { color, pack };
+  }
+
+   function renderPickList() {
+     const wrap = getEl('pick-groups');
+     const sum = getEl('pick-list-summary');
+     if (!wrap || !sum) return;
+     if (!APP_STATE.csvLoaded) {
+       wrap.innerHTML = ''; sum.innerHTML = 'Upload a manifest CSV to see the pick list';
+       return;
+     }
+     let totalToPull=0, short=0, out=0;
+     const grouped = {};
+     Object.entries(APP_STATE.variantsToPick).forEach(([varStr, reqQty]) => {
+        totalToPull += reqQty;
+        const parsed = parseVariantString(varStr);
+        const inv = parsed
+          ? S.inventory.find(i =>
+              i.color === parsed.color && i.pack === parsed.pack)
+          : null;
+        const key = inv ? inv.color + '|' + inv.pack : varStr;
+        if (!grouped[key]) grouped[key] = {
+          varStr: inv ? inv.color : (parsed ? parsed.color + ' (' + parsed.pack + ')' : varStr),
+          reqQty: 0,
+          inv: inv,
+          key: key
+        };
+        grouped[key].reqQty += reqQty;
+      });
+     
+     // Sorting: OUT first, then SHORT, then DISPLAY ORDER
+     const sortedGroups = Object.values(grouped).sort((a,b) => {
+       const aOut = a.inv && a.inv.stock === 0 ? 1 : 0;
+       const bOut = b.inv && b.inv.stock === 0 ? 1 : 0;
+       if (bOut !== aOut) return bOut - aOut;
+       
+       const aShort = a.inv && a.reqQty > a.inv.stock && a.inv.stock > 0 ? 1 : 0;
+       const bShort = b.inv && b.reqQty > b.inv.stock && b.inv.stock > 0 ? 1 : 0;
+       if (bShort !== aShort) return bShort - aShort;
+       
+       const aColIdx = a.inv ? S.colorOrder.indexOf(a.inv.color) : 999;
+       const bColIdx = b.inv ? S.colorOrder.indexOf(b.inv.color) : 999;
+       if (aColIdx !== bColIdx) return aColIdx - bColIdx;
+       
+       const packOrder = (S.settings && S.settings.packOrder) || ['2 Pack', '4 Pack', '4 Pack No Lanyard'];
+       const aPackIdx = a.inv ? packOrder.indexOf(a.inv.pack) : 999;
+       const bPackIdx = b.inv ? packOrder.indexOf(b.inv.pack) : 999;
+       return aPackIdx - bPackIdx;
+     });
+
+     let html = '';
+     let renderedUnmatchedHeader = false;
+
+     sortedGroups.forEach(g => {
+       const stKey = 'pick_chk_' + g.key.replace(/ /g,'_');
+       const isChecked = sessionStorage.getItem(stKey) === 'true';
+       const op = isChecked && !document.body.classList.contains('picking-mode') ? '0.5' : '1';
+
+       if (!g.inv) {
+         if (!renderedUnmatchedHeader) {
+           html += '<div style="margin-top:16px; margin-bottom:8px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--yellow);">UNMATCHED VARIANTS</div>';
+           renderedUnmatchedHeader = true;
+         }
+         
+         html += '<div style="background:var(--surface2);border:1px solid var(--border);padding:12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;opacity:'+op+';transition:opacity 0.2s;margin-bottom:8px;">';
+         html += '<label style="display:flex;align-items:center;gap:12px;cursor:pointer;flex:1">';
+         html += '<input type="checkbox" onchange="togglePickChk(this, \''+stKey+'\')" '+(isChecked?'checked':'')+' style="width:20px;height:20px;accent-color:var(--green)">';
+         html += '<div>';
+         html += '<div class="pick-name" style="color:var(--text);font-weight:700;margin-bottom:4px"><span style="color:#888">●</span> ' + g.varStr + '</div>';
+         html += '<div class="pick-stock" style="color:var(--muted)"></div>';
+         html += '</div></label>';
+         html += '<div style="display:flex; align-items:center; gap:12px;">';
+         html += '<span class="badge badge-yellow">NO MATCH</span>';
+         html += '<div class="pick-qty" style="background:var(--bg);padding:8px 16px;border-radius:6px;font-size:20px;font-weight:700;color:var(--green)">&times; ' + g.reqQty + '</div>';
+         html += '</div>';
+         html += '</div>';
+       } else {
+         const isOut = g.inv.stock === 0;
+         const isShort = g.reqQty > g.inv.stock && g.inv.stock > 0;
+         if(isOut) out++; if(isShort) short++;
+         
+         const cColor = isOut ? 'var(--red)' : isShort ? 'var(--yellow)' : 'var(--text)';
+         const bg = isOut ? '#3d1515' : isShort ? '#3d2e00' : 'var(--surface2)';
+         const brd = isOut ? '#7a2929' : isShort ? '#7a5c00' : 'var(--border)';
+         
+         let stockHtml = '';
+         if (isOut) {
+           stockHtml = 'Stock: 0 <span class="badge badge-red">OUT</span>';
+         } else if (isShort) {
+           stockHtml = 'Stock: ' + g.inv.stock + ' <span class="badge badge-yellow">SHORT</span>';
+         } else {
+           stockHtml = 'Stock: ' + g.inv.stock;
+         }
+         
+         html += '<div style="background:'+bg+';border:1px solid '+brd+';padding:12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;opacity:'+op+';transition:opacity 0.2s;margin-bottom:8px;">';
+         html += '<label style="display:flex;align-items:center;gap:12px;cursor:pointer;flex:1">';
+         html += '<input type="checkbox" onchange="togglePickChk(this, \''+stKey+'\')" '+(isChecked?'checked':'')+' style="width:20px;height:20px;accent-color:var(--green)">';
+         html += '<div>';
+         html += '<div class="pick-name" style="color:'+cColor+';font-weight:700;margin-bottom:4px">● ' + g.varStr + '</div>';
+         html += '<div class="pick-stock" style="color:var(--muted)">' + stockHtml + '</div>';
+         html += '</div></label>';
+         html += '<div class="pick-qty" style="background:var(--bg);padding:8px 16px;border-radius:6px;font-size:20px;font-weight:700">&times; ' + g.reqQty + '</div>';
+         html += '</div>';
+       }
+     });
+     
+     wrap.innerHTML = html;
+     sum.innerHTML = 'To pull: <b>'+totalToPull+'</b> items &middot; ' +
+       (short ? '<b style="color:var(--yellow)">'+short+' SHORT</b>' : '0 SHORT') + ' &middot; ' +
+       (out ? '<b style="color:var(--red)">'+out+' OUT</b>' : '0 OUT');
+   }
+
+   function togglePickMode() {
+     const isPick = document.body.classList.toggle('picking-mode');
+     const btn = getEl('pick-mode-btn');
+     if (isPick) {
+       btn.innerText = 'Exit Picking ✖';
+       document.getElementById('pick-list-wrap').style.display = 'block';
+       document.getElementById('pick-toggle-btn').style.display = 'none';
+     } else {
+       btn.innerText = 'Enter Picking Mode 🔍';
+       document.getElementById('pick-toggle-btn').style.display = 'inline-block';
+     }
+     renderPickList(); // re-render to update opacity based on mode
+   }
+
+   function togglePickListVis() {
+     const wrap = document.getElementById('pick-list-wrap');
+     const btn = document.getElementById('pick-toggle-btn');
+     if (wrap.style.display === 'none') { wrap.style.display = 'block'; btn.innerText = 'Collapse'; }
+     else { wrap.style.display = 'none'; btn.innerText = 'Expand'; }
+   }
+
+   function togglePickChk(el, stKey) {
+     sessionStorage.setItem(stKey, el.checked);
+     if (!document.body.classList.contains('picking-mode')) {
+       el.closest('div').style.opacity = el.checked ? '0.5' : '1';
+     }
+   }
+
+   const printedFiles = new Set();
+   const slipPrinted = new Set();
+
+   function updatePrintSection() {
+     const list = document.getElementById('print-list');
+     const badge = document.getElementById('print-badge');
+     if (!list) return;
+     if (!S.labelFiles || !S.labelFiles.length) {
+       list.innerHTML = '<i style="color:var(--muted);font-size:13px">No label files uploaded yet</i>';
+       if (badge) { badge.textContent = ''; badge.className = 'badge hidden'; }
+       return;
+     }
+     const total = S.labelFiles.length;
+     const done = S.labelFiles.filter(lf => printedFiles.has(lf.name)).length;
+     if (badge) {
+       badge.classList.remove('hidden');
+       if (done === total) { badge.textContent = 'All Printed'; badge.className = 'badge badge-green'; }
+       else { badge.textContent = 'Printed ' + done + '/' + total; badge.className = 'badge ' + (done > 0 ? 'badge-yellow' : 'badge-red'); }
+     }
+     list.innerHTML = S.labelFiles.map(lf => {
+       const printed = printedFiles.has(lf.name);
+       const nm = lf.name.length > 38 ? '...' + lf.name.slice(-35) : lf.name;
+       const count = (lf.trackings || []).length;
+       const sn = lf.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+       return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface2);border-radius:6px;margin-bottom:6px;border:1px solid ' + (printed ? 'var(--green)' : 'var(--border)') + '">' +
+         '<span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">&#128206; ' + nm + '</span>' +
+         '<span style="font-size:11px;color:var(--muted);white-space:nowrap">' + count + ' label' + (count!==1?'s':'') + '</span>' +
+         (lf.data ? '<button class="btn" style="padding:4px 12px;font-size:12px" onclick="printLabelFile(\'' + sn + '\')">&#128424; Print</button>' : '<span style="font-size:11px;color:var(--muted)">re-upload</span>') +
+         '<input type="checkbox" ' + (printed?'checked':'') + ' style="width:20px;height:20px;cursor:pointer;accent-color:var(--green)" onchange="togglePrinted(\'' + sn + '\',this.checked,\'label\')">' +
+         '</div>';
+     }).join('');
+   }
+
+   function printLabelFile(name) {
+     const lf = (S.labelFiles||[]).find(f => f.name === name);
+     if (!lf || !lf.data) return;
+     const blob = new Blob([lf.data], {type:'application/pdf'});
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement('a');
+     a.href = url; a.target = '_blank'; a.click();
+     setTimeout(() => URL.revokeObjectURL(url), 3000);
+     printedFiles.add(name);
+     updatePrintSection();
+   }
+
+   function togglePrinted(name, checked, type) {
+     if (type === 'label') {
+       if (checked) printedFiles.add(name); else printedFiles.delete(name);
+       updatePrintSection();
+     } else {
+       if (checked) slipPrinted.add(name); else slipPrinted.delete(name);
+       updateSlipPrintSection();
+     }
+   }
+
+   function updateSlipPrintSection() {
+     const list = document.getElementById('slips-list');
+     if (!list) return;
+     if (!S.uspsSlips || !S.uspsSlips.length) {
+       list.innerHTML = '<i style="color:var(--muted);font-size:13px">No USPS slips uploaded yet</i>';
+       const hdr = document.getElementById('slips-badge');
+       if (hdr) { hdr.textContent = ''; hdr.className = 'badge hidden'; }
+       return;
+     }
+     const total = S.uspsSlips.length;
+     const done = S.uspsSlips.filter(s => slipPrinted.has(s.name)).length;
+     const badge = document.getElementById('slips-badge');
+     if (badge) {
+       badge.classList.remove('hidden');
+       if (done === total) { badge.textContent = 'All Printed'; badge.className = 'badge badge-green'; }
+       else { badge.textContent = 'Printed ' + done + '/' + total; badge.className = 'badge ' + (done > 0 ? 'badge-yellow' : 'badge-red'); }
+     }
+     list.innerHTML = S.uspsSlips.map(slip => {
+       const printed = slipPrinted.has(slip.name);
+       const nm = slip.name.length > 38 ? '...' + slip.name.slice(-35) : slip.name;
+       const sn = slip.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+       return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface2);border-radius:6px;margin-bottom:6px;border:1px solid ' + (printed?'var(--green)':'var(--border)') + '">' +
+         '<span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">&#128206; ' + nm + '</span>' +
+         '<button class="btn" style="padding:4px 12px;font-size:12px" onclick="printSlipFile(\'' + sn + '\')">&#128424; Print</button>' +
+         '<input type="checkbox" ' + (printed?'checked':'') + ' style="width:20px;height:20px;cursor:pointer;accent-color:var(--green)" onchange="togglePrinted(\'' + sn + '\',this.checked,\'slip\')">' +
+         '</div>';
+     }).join('');
+   }
+
+   function printSlipFile(name) {
+     const slip = (S.uspsSlips||[]).find(s => s.name === name);
+     if (!slip || !slip.data) return;
+     const blob = new Blob([slip.data], {type:'application/pdf'});
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement('a');
+     a.href = url; a.target = '_blank'; a.click();
+     setTimeout(() => URL.revokeObjectURL(url), 3000);
+     slipPrinted.add(name);
+     updateSlipPrintSection();
+   }
+
+   async function toggleVault() {
+     const panel = getEl('vault-panel');
+     if (panel.classList.contains('open')) {
+       panel.classList.remove('open');
+       getEl('vault-toggle-btn').textContent = '\uD83D\uDCC1 Browse Vault';
+       return;
+     }
+     getEl('vault-status').textContent = 'Loading...';
+     panel.innerHTML = '';
+     try {
+       const r = await fetch('/api/vault');
+       const data = await r.json();
+       if (!data.dates || !data.dates.length) {
+         panel.innerHTML = '<i style="color:var(--muted);font-size:12px">No archived files yet</i>';
+       } else {
+         let html = '';
+         data.dates.forEach(d => {
+           html += '<div class="vault-date-header">' + d.date + '</div>';
+           d.files.forEach(f => {
+             const sizeKb = (f.size / 1024).toFixed(0);
+             const safePath = JSON.stringify(f.path);
+             const safeName = JSON.stringify(f.name);
+             html += '<div class="vault-file-row" onclick="loadVaultFile(' + safePath + ',' + safeName + ')">' +
+               '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">&#128206; ' + f.name + '</span>' +
+               '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
+               '<button class="btn" style="padding:2px 8px;font-size:11px">Use</button>' +
+               '</div>';
+           });
+         });
+         panel.innerHTML = html;
+       }
+       getEl('vault-status').textContent = '';
+       panel.classList.add('open');
+       getEl('vault-toggle-btn').textContent = '\u2715 Close Vault';
+     } catch(e) {
+       getEl('vault-status').textContent = 'Error loading vault';
+       console.error('Vault load error:', e);
+     }
+   }
+
+   async function loadVaultFile(path, name) {
+     getEl('vault-status').textContent = 'Loading ' + name + '...';
+     try {
+       const r = await fetch('/api/vault/file/' + encodeURIComponent(path).replace('%2F', '/'));
+       if (!r.ok) throw new Error('Fetch failed: ' + r.status);
+       const buf = await r.arrayBuffer();
+       const ext = name.split('.').pop().toLowerCase();
+       const mime = ext === 'pdf' ? 'application/pdf' : 'text/csv';
+       const file = new File([buf], name, {type: mime});
+       await handleFiles([file]);
+       getEl('vault-status').textContent = name + ' loaded';
+       toggleVault();
+     } catch(e) {
+       getEl('vault-status').textContent = 'Failed to load file';
+       console.error('loadVaultFile error:', e);
+     }
+   }
+
+   function clearFilesAndScans() {
+     document.title = 'ShipKit — PRINTZ&GIGGLEZ';
+     batchStartTime = null;
+     if (deadlineInterval) { clearInterval(deadlineInterval); deadlineInterval = null; }
+     const bsl = document.getElementById('batch-start-label');
+     if (bsl) bsl.textContent = '';
+     const db2 = document.getElementById('deadline-banner');
+     if (db2) db2.style.display = 'none';
+     const sl = document.getElementById('scan-log');
+     if (sl) sl.innerHTML = '<i style="color:var(--muted)">No packages scanned yet</i>';
+     APP_STATE.trackingsToScan.clear();
+     APP_STATE.scanned = [];
+     APP_STATE.variantsToPick = {};
+     APP_STATE.csvLoaded = false;
+     APP_STATE.labelsLoaded = false;
+     APP_STATE.slipsLoaded = false;
+     getEl('recon-banner').innerHTML = '';
+     updateScanUI();
+   }
+
+   function armScanner() {
+     const i = getEl('scan-input');
+     i.focus();
+   }
+   
+   setInterval(() => {
+     if(document.activeElement === getEl('scan-input')) {
+        const btn = getEl('arm-scanner-btn');
+        btn.classList.add('pulse');
+        btn.innerText = 'Scanner Armed 🔴';
+     } else if(getEl('arm-scanner-btn')) {
+        getEl('arm-scanner-btn').classList.remove('pulse');
+        getEl('arm-scanner-btn').innerText = 'Arm Scanner';
+     }
+   }, 500);
+
+   function handleScan(val) {
+     const tk = normT(val);
+     getEl('scan-input').value = '';
+     if (!tk) return;
+     
+     if (APP_STATE.scanned.find(s => s.tracking === tk)) {
+       beep('error'); speak('Duplicate'); return;
+     }
+     
+     // Determine pile
+     const expected = APP_STATE.trackingsToScan.has(tk);
+     const zone = expected ? S.settings.zoneNames.primary : S.settings.zoneNames.secondary;
+     
+     APP_STATE.scanned.push({ tracking: tk, zone: zone, date: new Date().toISOString(),
+       variant: (APP_STATE.csvOrders||[]).find(o=>o.tracking===tk)?.variant || 'Unknown' });
+     
+     beep('done');
+     if (!expected) speak('Clerk');
+     else speak('One'); // Simulate pile allocation
+     
+     // Check if done
+     if (APP_STATE.scanned.filter(s => s.zone === S.settings.zoneNames.primary).length >= S.labelFiles ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0), 0) : 0) {
+        speak('All clear');
+     }
+     updateScanUI();
+     document.title = APP_STATE.scanned.length + '/' + (APP_STATE.trackingsToScan ? APP_STATE.trackingsToScan.size : 0) + ' — PRINTZ&GIGGLEZ';
+     renderScanLog();
+   }
+
+   let logViewMode = 'variant';
+
+   function setLogView(mode) {
+     logViewMode = mode;
+     ['variant','tracking','product'].forEach(m => {
+       const btn = document.getElementById('log-tab-'+m);
+       if (btn) btn.className = 'btn' + (m === mode ? ' btn-active' : '');
+     });
+     renderScanLog();
+   }
+
+   function renderScanLog() {
+     const el = document.getElementById('scan-log');
+     if (!el) return;
+     if (!APP_STATE.scanned.length) {
+       el.innerHTML = '<i style="color:var(--muted)">No packages scanned yet</i>';
+       return;
+     }
+     const rows = [...APP_STATE.scanned].reverse().map(s => {
+       let label = s.tracking;
+       if (logViewMode === 'variant') label = s.variant || 'Unknown';
+       if (logViewMode === 'product') label = s.product || s.variant || s.tracking;
+       const time = s.date ? new Date(s.date).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
+       const zoneColor = s.zone === S.settings.zoneNames?.secondary ? 'var(--yellow)' : 'var(--green)';
+       return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">' +
+         '<span>' + label + '</span>' +
+         '<span style="display:flex;gap:8px">' +
+         '<span style="color:'+zoneColor+';font-size:11px">' + (s.zone||'') + '</span>' +
+         '<span style="color:var(--muted);font-size:11px">' + time + '</span>' +
+         '</span></div>';
+     });
+     el.innerHTML = rows.join('');
+   }
+
+   function exportScans() {
+     const lines = ['Tracking,Zone,Variant,Time'];
+     APP_STATE.scanned.forEach(s => {
+       lines.push([s.tracking, s.zone||'', s.variant||'', s.date||''].join(','));
+     });
+     const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement('a');
+     a.href = url;
+     a.download = 'shipkit_scan_' + new Date().toISOString().slice(0,10) + '.csv';
+     a.click();
+     setTimeout(() => URL.revokeObjectURL(url), 3000);
+   }
+
+   function startBatchTimer() {
+     if (!batchStartTime) {
+       batchStartTime = Date.now();
+     }
+     updateBatchTimer();
+     if (deadlineInterval) clearInterval(deadlineInterval);
+     deadlineInterval = setInterval(updateBatchTimer, 60000);
+   }
+
+   function updateBatchTimer() {
+     const el = document.getElementById('batch-start-label');
+     if (!el || !batchStartTime) return;
+     const elapsed = Date.now() - batchStartTime;
+     const hrs = Math.floor(elapsed / 3600000);
+     const mins = Math.floor((elapsed % 3600000) / 60000);
+     let color = 'var(--muted)';
+     if (hrs >= 4) color = 'var(--yellow)';
+     if (hrs >= 8) color = 'var(--red)';
+     el.style.color = color;
+     el.textContent = 'Batch started ' + (hrs > 0 ? hrs+'h ' : '') + mins + 'm ago';
+
+     // Deadline banner
+     const banner = document.getElementById('deadline-banner');
+     if (!banner || !S.settings.carrierCloseTime) return;
+     const [closeH, closeM] = (S.settings.carrierCloseTime || '17:00').split(':').map(Number);
+     const travel = S.settings.travelMinutes || 30;
+     const now = new Date();
+     const deadline = new Date();
+     deadline.setHours(closeH, closeM - travel, 0, 0);
+     const diffMs = deadline - now;
+     const diffH = Math.floor(diffMs / 3600000);
+     const diffM = Math.floor((diffMs % 3600000) / 60000);
+
+     if (diffMs < 0) {
+       banner.style.display = 'block';
+       banner.style.background = '#3d1515';
+       banner.style.color = 'var(--red)';
+       banner.textContent = '⚠ OVERDUE — Carrier close time has passed';
+     } else if (diffMs < 7200000) {
+       banner.style.display = 'block';
+       banner.style.background = diffMs < 3600000 ? '#3d1515' : '#3d2e00';
+       banner.style.color = diffMs < 3600000 ? 'var(--red)' : 'var(--yellow)';
+       banner.textContent = '🕐 ' + (diffH > 0 ? diffH+'h ' : '') + diffM + 'm until carrier close — Ship today';
+     } else {
+       banner.style.display = 'none';
+     }
+   }
+
+   function showModal(title, bodyHTML, buttons) {
+     let m = document.getElementById('sk-modal');
+     if (!m) {
+       m = document.createElement('div');
+       m.id = 'sk-modal';
+       m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center;';
+       m.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;min-width:320px;max-width:520px;width:90%">' +
+         '<h3 id="sk-modal-title" style="margin-bottom:12px"></h3>' +
+         '<div id="sk-modal-body" style="margin-bottom:20px"></div>' +
+         '<div id="sk-modal-btns" style="display:flex;gap:8px;justify-content:flex-end"></div></div>';
+       document.body.appendChild(m);
+     }
+     document.getElementById('sk-modal-title').textContent = title;
+     document.getElementById('sk-modal-body').innerHTML = bodyHTML;
+     const btnsEl = document.getElementById('sk-modal-btns');
+     btnsEl.innerHTML = '';
+     buttons.forEach(b => {
+       const btn = document.createElement('button');
+       btn.textContent = b.label;
+       btn.className = 'btn ' + (b.cls || '');
+       btn.onclick = () => { m.style.display = 'none'; b.action && b.action(); };
+       btnsEl.appendChild(btn);
+     });
+     m.style.display = 'flex';
+   }
+
+   function handleSmartShip() {
+     const readyCount = APP_STATE.scanned.length;
+     const expectedCount = S.labelFiles ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0), 0) : 0;
+     const hasCommitted = S.batches && S.batches.length > 0;
+
+     if (readyCount === 0 && hasCommitted) {
+       showModal('Ship & Save All',
+         '<p>Archive <b>' + S.batches.length + ' batch(es)</b> to History and reset for tomorrow?</p>' +
+         '<p style="font-size:12px;color:var(--muted)">Inventory and History will update.</p>' +
+         '<div style="margin-top:12px;padding:10px 12px;border-radius:8px;background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.2);font-size:12px;color:var(--accent)">📷 Take a packing photo before sealing — tap to confirm you\'re ready</div>',
+         [{ label: 'Cancel', cls: '' },
+          { label: 'Ship & Save All', cls: 'btn-green', action: () => archiveSession() }]);
+       return;
+     }
+     const missingCount = Math.max(0, expectedCount - readyCount);
+     if (readyCount > 0 && missingCount === 0) {
+       showModal('Commit Batch', '<p>Commit <b>' + readyCount + '</b> scanned packages?</p>',
+         [{ label: 'Cancel', cls: '' },
+          { label: 'Commit', cls: 'btn-green', action: () => commitBatch(false) }]);
+     } else if (readyCount > 0 && missingCount > 0) {
+       showModal('Partial Batch',
+         '<div style="background:#3d2e00;border:1px solid #7a5c00;border-radius:6px;padding:16px;margin-bottom:12px;text-align:center">' +
+         '<div style="font-size:28px;font-weight:700;color:var(--yellow)">⏸ ' + missingCount + '</div>' +
+         '<div style="color:var(--yellow)">packages going ON HOLD</div></div>' +
+         '<p style="font-size:13px;color:var(--muted)">' + readyCount + ' scanned will commit. ' + missingCount + ' unscanned go to hold.</p>',
+         [{ label: 'Cancel', cls: '' },
+          { label: 'Commit + Hold Missing', cls: 'btn-accent', action: () => commitBatch(true) }]);
+     } else if (readyCount === 0 && (APP_STATE.labelsLoaded || APP_STATE.csvLoaded)) {
+       archiveSession();
+     }
+   }
+
+   function commitBatch(autoHold) {
+     const bId = Date.now().toString(36) + Math.random().toString(36).slice(2,4);
+     const timeStr = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+     const scannedSet = new Set(APP_STATE.scanned.map(s => s.tracking));
+     // Capture missing BEFORE clearing scan state
+     const missingTrackings = [];
+     if (APP_STATE.trackingsToScan) {
+       APP_STATE.trackingsToScan.forEach(t => { if (!scannedSet.has(t)) missingTrackings.push(t); });
+     }
+     // Decrement inventory per scanned variant
+     const variantCounts = {};
+     APP_STATE.scanned.forEach(s => {
+       const v = s.variant || 'Unknown';
+       variantCounts[v] = (variantCounts[v] || 0) + 1;
+     });
+     Object.entries(variantCounts).forEach(([varStr, qty]) => {
+       const inv = S.inventory.find(i =>
+         varStr.toLowerCase().includes(i.color.toLowerCase()) &&
+         varStr.toLowerCase().includes(i.pack.toLowerCase()));
+       if (inv) {
+         inv.stock = Math.max(0, inv.stock - qty);
+         const dk = inv.color+'|'+inv.pack;
+         S.todayDelta[dk] = (S.todayDelta[dk]||0) + qty;
+       }
+     });
+     // Add missing to hold
+     if (autoHold) {
+       missingTrackings.forEach(t => {
+         const csvMatch = (APP_STATE.csvOrders||[]).find(o => o.tracking === t);
+         const vLabel = csvMatch ? csvMatch.variant : 'Unknown';
+         S.held.push({ id: Date.now()+Math.random(), type:'inventory_hold', tracking:t,
+           variantKey:vLabel, variantLabel:vLabel,
+           heldAt:new Date().toISOString().slice(0,10),
+           orderDate: csvMatch ? csvMatch.orderDate : '', batchId:bId });
+       });
+     }
+     S.batches.push({ id:bId, committedAt:timeStr, isoDate:new Date().toISOString(),
+       packages:[...APP_STATE.scanned], holdCount:missingTrackings.length,
+       variantCounts, manifestCount:APP_STATE.scanned.filter(s=>s.zone!==S.settings.zoneNames?.secondary).length,
+       clerkCount:APP_STATE.scanned.filter(s=>s.zone===S.settings.zoneNames?.secondary).length });
+     APP_STATE.scanned = []; APP_STATE.variantsToPick = {};
+     if (APP_STATE.trackingsToScan) APP_STATE.trackingsToScan.clear();
+     saveS('inventory'); saveS('todayDelta'); saveS('held'); saveS('batches');
+     updateScanUI(); renderInvTable(); updateInvBadge();
+   }
+
+   function renderBatchCards() {
+     const el = document.getElementById('batch-cards');
+     if (!el) return;
+     if (!S.batches || !S.batches.length) { el.innerHTML = ''; return; }
+     const prim = (S.settings.zoneNames && S.settings.zoneNames.primary) || 'Sort Zone 1';
+     const sec = (S.settings.zoneNames && S.settings.zoneNames.secondary) || 'Clerk Counter';
+     let out = '';
+     S.batches.forEach(function(b, i) {
+       const vPills = Object.entries(b.variantCounts || {})
+         .map(function(e) { return '<span style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2px 10px;font-size:11px">' + e[0] + ' x' + e[1] + '</span>'; })
+         .join(' ');
+       const holdCount = (S.held||[]).filter(function(h) { return h.batchId === b.id; }).length;
+       const holdBadge = holdCount > 0 ? '<span style="background:#3d2e00;color:var(--yellow);border-radius:12px;padding:2px 8px;font-size:11px">on hold: ' + holdCount + '</span>' : '';
+       const slipBtns = (b.slips||[]).map(function(sl,si) {
+         return '<button class="btn" style="padding:2px 8px;font-size:11px;margin-right:4px" onclick="downloadBatchSlip(' + JSON.stringify(b.id) + ',' + si + ')">Slip ' + (si+1) + '</button>';
+       }).join('');
+       out += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px">';
+       out += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+       out += '<b>Batch ' + (i+1) + ' - ' + (b.committedAt||'') + '</b>';
+       out += '<div style="display:flex;gap:6px;align-items:center">' + holdBadge;
+       out += '<button class="btn" style="padding:3px 10px;font-size:11px;color:var(--red)" onclick="undoBatch(' + JSON.stringify(b.id) + ')">Undo</button>';
+       out += '</div></div>';
+       out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
+       out += '<div style="background:rgba(0,200,100,0.08);border:1px solid rgba(0,200,100,0.25);border-radius:6px;padding:8px">';
+       out += '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">' + prim + '</div>';
+       out += '<div style="font-size:22px;font-weight:700;color:var(--green)">' + (b.manifestCount||0) + '</div></div>';
+       out += '<div style="background:rgba(255,180,0,0.08);border:1px solid rgba(255,180,0,0.25);border-radius:6px;padding:8px">';
+       out += '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">' + sec + '</div>';
+       out += '<div style="font-size:22px;font-weight:700;color:var(--yellow)">' + (b.clerkCount||0) + '</div></div></div>';
+       out += '<div style="display:flex;gap:6px;flex-wrap:wrap' + (slipBtns ? ';margin-bottom:8px' : '') + '">' + vPills + '</div>';
+       if (slipBtns) out += '<div style="display:flex;gap:4px;margin-top:4px">' + slipBtns + '</div>';
+       out += '<div id="carrier-ts-' + b.id + '" style="margin-top:10px;font-size:11px;color:var(--muted)">';
+       out += b.carrierAcceptedAt ? '✓ Carrier accepted: ' + b.carrierAcceptedAt : '';
+       out += '</div>';
+       out += '<div style="display:flex;gap:8px;margin-top:8px">';
+       out += '<button class="btn" style="font-size:11px;padding:4px 10px" onclick="markCarrierAccepted(\'' + b.id + '\')">✓ Carrier Accepted</button>';
+       out += '<button class="btn" style="font-size:11px;padding:4px 10px" onclick="printCarrierCard(\'' + b.id + '\')">🖨 Print Carrier Card</button>';
+       out += '</div>';
+       out += '</div>';
+     });
+     el.innerHTML = out;
+   }
+
+   function downloadBatchSlip(batchId, slipIdx) {
+     const batch = S.batches.find(b => b.id === batchId);
+     if (!batch || !batch.slips || !batch.slips[slipIdx]) return;
+     downloadSlip(null, batch.slips[slipIdx].name);
+   }
+
+   function markCarrierAccepted(batchId) {
+     const b = S.batches.find(x => x.id === batchId);
+     if (!b) return;
+     b.carrierAcceptedAt = new Date().toLocaleTimeString();
+     saveS('batches');
+     renderBatchCards();
+     showToast('Carrier acceptance recorded', 'success');
+   }
+
+   function printCarrierCard(batchId) {
+     showToast('Print Carrier Card — coming soon', 'info');
+   }
+
+      function undoBatch(batchId) {
+     const idx = S.batches.findIndex(b => b.id === batchId);
+     if (idx === -1) return;
+     const batch = S.batches[idx];
+     Object.entries(batch.variantCounts||{}).forEach(([varStr,qty]) => {
+       const inv = S.inventory.find(i => varStr.toLowerCase().includes(i.color.toLowerCase()) && varStr.toLowerCase().includes(i.pack.toLowerCase()));
+       if (inv) { inv.stock += qty; const dk = inv.color+'|'+inv.pack; S.todayDelta[dk] = Math.max(0,(S.todayDelta[dk]||0)-qty); }
+     });
+     S.held = S.held.filter(h => h.batchId !== batchId);
+     S.batches.splice(idx, 1);
+     saveS('inventory'); saveS('todayDelta'); saveS('held'); saveS('batches');
+     const el = document.getElementById('batch-cards');
+     if (el) { el.style.background='#3d1515'; setTimeout(()=>{ el.style.background=''; }, 400); }
+     renderBatchCards(); renderHeldQueue(); renderInvTable(); updateInvBadge();
+   }
+
+   function renderHeldQueue() {
+     const panel = document.getElementById('hold-subpanel');
+     const list = document.getElementById('hold-list');
+     const badge = document.getElementById('hold-count-badge');
+     const clearBtn = document.getElementById('hold-clear-btn');
+     if (!panel || !list) return;
+     const count = S.held ? S.held.length : 0;
+     if (badge) { badge.style.display = count > 0 ? 'inline-block' : 'none'; badge.textContent = count; }
+     if (clearBtn) clearBtn.style.display = count > 0 ? 'inline-block' : 'none';
+     if (!count) { list.innerHTML = '<i style="color:var(--muted)">No packages on hold</i>'; return; }
+     let out = '';
+     S.held.forEach(function(h) {
+       const isCancelled = h.type === 'cancellation';
+       let deadlineHtml = '';
+       if (h.orderDate && !isCancelled) {
+         const dl = new Date(h.orderDate);
+         dl.setDate(dl.getDate() + (S.settings.slaBusinessDays||2) + 2);
+         const diffMs = dl - Date.now();
+         const diffH = Math.floor(diffMs / 3600000);
+         const diffD = Math.floor(diffH / 24);
+         let dlColor = 'var(--green)', dlText = diffD + 'd left';
+         if (diffMs < 0) { dlColor = 'var(--red)'; dlText = 'OVERDUE'; }
+         else if (diffH < 6) { dlColor = 'var(--red)'; dlText = diffH + 'h left'; }
+         else if (diffH < 24) { dlColor = 'var(--yellow)'; dlText = diffH + 'h left'; }
+         deadlineHtml = '<span style="font-size:11px;color:' + dlColor + ';font-weight:600">' + dlText + '</span>';
+       }
+       const cancelBadge = isCancelled ? '<span style="background:#3d1515;color:var(--red);border-radius:12px;padding:2px 8px;font-size:11px">CANCELLED</span>' : '';
+       const hid = JSON.stringify(String(h.id));
+       const acts = isCancelled
+         ? '<button class="btn" style="padding:3px 10px;font-size:11px" onclick="dismissHeld(' + hid + ')">Dismiss</button>'
+         : '<button class="btn btn-accent" style="padding:3px 10px;font-size:11px" onclick="markHeldShipped(' + hid + ')">Mark Shipped</button>' +
+           '<button class="btn" style="padding:3px 10px;font-size:11px;color:var(--muted)" onclick="logCancellationHeld(' + hid + ')">Cancel</button>';
+       out += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">';
+       out += '<div><div style="font-size:13px;font-weight:500">' + (h.variantLabel||'Unknown') + '</div>';
+       out += '<div style="font-size:11px;color:var(--muted);display:flex;gap:8px;margin-top:2px">';
+       out += '<span>...' + (h.tracking||'').slice(-8) + '</span><span>' + (h.heldAt||'') + '</span>' + deadlineHtml + '</div></div>';
+       out += '<div style="display:flex;gap:6px;align-items:center">' + cancelBadge + acts + '</div></div>';
+     });
+     list.innerHTML = out;
+   }
+
+   function toggleHoldPanel() {
+     const wrap = document.getElementById('hold-list-wrap');
+     const chev = document.getElementById('hold-chevron');
+     if (!wrap) return;
+     const hidden = wrap.style.display === 'none';
+     wrap.style.display = hidden ? 'block' : 'none';
+     if (chev) chev.textContent = hidden ? 'v' : '>';
+   }
+
+   function logCancellationNew() {
+     showModal('Log Cancellation',
+       '<p style="margin-bottom:10px">Paste the tracking number:</p>' +
+       '<input type="text" id="cancel-track-input" placeholder="Tracking number" style="width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;margin-bottom:10px">' +
+       '<input type="text" id="cancel-variant-input" placeholder="Variant (e.g. Black 4pk)" style="width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;margin-bottom:10px">' +
+       '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="cancel-rev-new"> Reverse inventory deduction</label>',
+       [{ label:'Cancel', cls:'' },
+        { label:'Log Cancellation', cls:'btn-red', action:()=>{
+          const tracking = (document.getElementById('cancel-track-input')||{}).value||'';
+          const variant = (document.getElementById('cancel-variant-input')||{}).value||'Unknown';
+          if (!tracking.trim()) return;
+          const existing = S.held.find(h => h.tracking === tracking.trim());
+          if (existing) { existing.type = 'cancellation'; }
+          else { S.held.push({id:Date.now()+Math.random(),type:'cancellation',tracking:tracking.trim(),variantKey:variant,variantLabel:variant,heldAt:new Date().toISOString().slice(0,10),orderDate:''}); }
+          if ((document.getElementById('cancel-rev-new')||{}).checked) {
+            const inv = S.inventory.find(i => variant.toLowerCase().includes(i.color.toLowerCase()) && variant.toLowerCase().includes(i.pack.toLowerCase()));
+            if (inv) inv.stock++;
+          }
+          saveS('held'); saveS('inventory');
+          renderHeldQueue(); renderInvTable(); updateInvBadge();
+        }}]);
+   }
+
+   function markHeldShipped(heldId) {
+     const item = S.held.find(h=>h.id==heldId);
+     if(!item) return;
+     const inv = S.inventory.find(i=>(item.variantKey||'').toLowerCase().includes(i.color.toLowerCase())&&(item.variantKey||'').toLowerCase().includes(i.pack.toLowerCase()));
+     if(inv&&inv.stock>0){inv.stock--;S.todayDelta[inv.color+'|'+inv.pack]=(S.todayDelta[inv.color+'|'+inv.pack]||0)+1;}
+     S.shippedT.add(item.tracking);
+     S.held = S.held.filter(h=>h.id!=heldId);
+     saveS('inventory'); saveS('todayDelta'); saveS('held');
+     renderHeldQueue(); renderInvTable(); updateInvBadge();
+   }
+
+   function dismissHeld(heldId) {
+     S.held = S.held.filter(h=>h.id!=heldId);
+     saveS('held').then(()=>renderHeldQueue());
+   }
+
+   function logCancellationHeld(heldId) {
+     const item = S.held.find(h=>h.id==heldId);
+     if(!item) return;
+     showModal('Log Cancellation',
+       '<p>Mark <b>'+(item.variantLabel||'Unknown')+'</b> as cancelled?</p>' +
+       '<p style="font-size:12px;color:var(--muted)">Tracking: …'+(item.tracking||'').slice(-8)+'</p>' +
+       '<label style="display:flex;gap:8px;align-items:center;margin-top:10px">' +
+       '<input type="checkbox" id="cancel-rev-inv"> Reverse inventory if already counted</label>',
+       [{ label:'Keep as Hold', cls:'' },
+        { label:'Mark Cancelled', cls:'btn-red', action:()=>{
+          if(document.getElementById('cancel-rev-inv')?.checked){
+            const inv=S.inventory.find(i=>(item.variantKey||'').toLowerCase().includes(i.color.toLowerCase())&&(item.variantKey||'').toLowerCase().includes(i.pack.toLowerCase()));
+            if(inv) inv.stock++;
+          }
+          const idx=S.held.findIndex(h=>h.id==heldId);
+          if(idx>-1) S.held[idx].type='cancellation';
+          saveS('inventory'); saveS('held');
+          renderHeldQueue(); renderInvTable();
+        }}]);
+   }
+
+   function archiveSession() {
+     if (S.batches.length === 0) return;
+     const totalPackages = S.batches.reduce(function(sum,b) { return sum + (b.manifestCount||0) + (b.clerkCount||0); }, 0);
+     const batchCount = S.batches.length;
+     const tDate = todayStr();
+     S.sessions.unshift({date:tDate, batches:S.batches.slice(), totalPackages:totalPackages});
+     S.batches = []; S.todayDelta = {};
+     clearFilesAndScans();
+     saveS('sessions'); saveS('batches'); saveS('todayDelta');
+     const flash = document.createElement('div');
+     flash.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:99999;display:flex;align-items:center;justify-content:center;';
+     const inner = document.createElement('div');
+     inner.style.cssText = 'text-align:center;padding:40px';
+     inner.innerHTML = '<div style="font-size:64px;margin-bottom:16px">&#127881;</div>' +
+       '<div style="font-size:36px;font-weight:700;color:var(--green);margin-bottom:8px">' + totalPackages + ' packages shipped</div>' +
+       '<div style="font-size:15px;color:var(--muted)">' + batchCount + ' batch' + (batchCount!==1?'es':'') + ' archived</div>' +
+       '<div style="font-size:14px;color:var(--muted);margin-top:12px">Great work. See you tomorrow.</div>';
+     const doneBtn = document.createElement('button');
+     doneBtn.className = 'btn btn-green';
+     doneBtn.style.cssText = 'margin-top:24px;padding:10px 32px;font-size:15px';
+     doneBtn.textContent = 'Done';
+     doneBtn.onclick = function() { flash.remove(); renderHistoryFeed(); switchTab('history'); };
+     inner.appendChild(doneBtn);
+     flash.appendChild(inner);
+     document.body.appendChild(flash);
+     setTimeout(function() { if (flash.parentNode) { flash.remove(); renderHistoryFeed(); switchTab('history'); } }, 8000);
+   }
+
+   function clearHolds() {
+     if (!S.held||!S.held.length) return;
+     showModal('Clear Hold Queue',
+       '<p>Remove all <b>'+S.held.length+'</b> items from the hold queue?</p>' +
+       '<p style="font-size:12px;color:var(--red)">This cannot be undone.</p>',
+       [{ label:'Cancel', cls:'' },
+        { label:'Clear All', cls:'btn-red', action:()=>{
+          S.held=[]; saveS('held').then(()=>renderHeldQueue());
+        }}]);
+   }
+
+   function todayStr() {
+       return new Date().toISOString().split('T')[0];
+   }
+   
+   // --- INVENTORY LOGIC ---
+   function invAction(type) {
+     const chks = type === 'selected' ? [...document.querySelectorAll('.inv-chk:checked')] : [];
+     const keys = type === 'selected' ? chks.map(c => c.value) : S.inventory.map(i => i.color+'|'+i.pack);
+     if (keys.length === 0) return;
+     const label = type==='selected' ? 'selected items' : 'ALL items';
+     showModal('Set Stock — '+label,
+       '<input type="number" id="inv-action-qty" placeholder="Enter quantity" style="width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px">',
+       [{ label:'Cancel', cls:'' },
+        { label:'Apply', cls:'btn-green', action:()=>{
+          const qty = parseInt(document.getElementById('inv-action-qty')?.value||'');
+          if (!qty && qty!==0) return;
+          S.inventory.forEach(i=>{ if(keys.includes(i.color+'|'+i.pack)) i.stock=qty; });
+          saveS('inventory'); renderInvTable(); updateInvBadge();
+        }}]);
+   }
+
+   function updateStock(color, pack, delta, setExact = false) {
+     const item = S.inventory.find(i => i.color === color && i.pack === pack);
+     if (!item) return;
+     item.stock = setExact ? parseInt(delta||0) : item.stock + parseInt(delta||0);
+     if (item.stock < 0) item.stock = 0;
+     saveS('inventory');
+     renderInvTable();
+     updateInvBadge();
+   }
+
+   function quickAddStock(color, pack, inputId) {
+     const val = getEl(inputId).value;
+     if (val) updateStock(color, pack, val, false);
+   }
+
+   function startEditStock(color, pack, id) {
+     const el = getEl(id);
+     const stock = el.innerText;
+     el.innerHTML = `<input type="number" id="${id}-in" value="${stock}" style="width:60px;padding:2px">`;
+     const inp = getEl(`${id}-in`);
+     inp.focus();
+     inp.select();
+     inp.onblur = () => updateStock(color, pack, inp.value, true);
+     inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') renderInvTable(); };
+   }
+
+   function updateInvBadge() {
+     const lowCount = S.inventory.filter(i => i.stock <= S.settings.lowThreshold).length;
+     const b = getEl('inv-badge');
+     if (lowCount > 0) { b.classList.remove('hidden'); b.innerText = '!'; }
+     else b.classList.add('hidden');
+   }
+
+   function renderInvTable() {
+     let html = '';
+     let total = 0, inStock = 0, low = 0, out = 0;
+     
+     const grouped = {};
+     S.colorOrder.forEach(c => grouped[c] = S.inventory.filter(i => i.color === c).sort((a,b) => S.settings.packOrder.indexOf(a.pack) - S.settings.packOrder.indexOf(b.pack)));
+     
+     S.inventory.forEach(i => {
+       total += i.stock;
+       if (i.stock > 0) inStock++;
+       if (i.stock === 0) out++;
+       else if (i.stock <= S.settings.lowThreshold) low++;
+     });
+
+     getEl('inv-stats-bar').innerHTML = `Total Units: ${total} &middot; SKUs In Stock: ${inStock} &middot; Low Stock: ${low} &middot; Out of Stock: ${out}`;
+
+     S.colorOrder.forEach((color, gIdx) => {
+       const items = grouped[color];
+       if (!items || !items.length) return;
+       html += `
+         <tbody data-color="${color}">
+           <tr class="inv-group-header">
+             <td colspan="7"><span class="drag-handle">⠿</span> <b>${color}</b></td>
+           </tr>
+       `;
+       items.forEach((it, iIdx) => {
+         const k = `${color}|${it.pack}`;
+         const dtId = `stk-${gIdx}-${iIdx}`;
+         const badg = it.stock === 0 ? '<span class="badge badge-red">OUT</span>' : (it.stock <= S.settings.lowThreshold ? '<span class="badge badge-yellow">LOW</span>' : '');
+         const delta = S.todayDelta[k] ? `<span class="badge badge-amber">${S.todayDelta[k] > 0 ? '+'+S.todayDelta[k] : S.todayDelta[k]}</span>` : '';
+         html += `
+           <tr class="inv-row">
+             <td style="width:30px"><input type="checkbox" class="inv-chk" value="${k}"></td>
+             <td style="width:120px">● ${color}</td>
+             <td style="width:60px">${it.pack}</td>
+             <td style="width:140px; white-space:nowrap">
+               <button class="qty-btn" onclick="updateStock('${color}','${it.pack}', -1)">−</button>
+               <span class="stock-num" id="${dtId}" onclick="startEditStock('${color}','${it.pack}', '${dtId}')">${it.stock}</span>
+               <button class="qty-btn" onclick="updateStock('${color}','${it.pack}', 1)">+</button>
+             </td>
+             <td style="width:140px; white-space:nowrap">
+               <input type="number" id="qa-${dtId}" style="width:60px;height:28px" placeholder="qty">
+               <button class="btn" style="padding:4px 8px" onclick="quickAddStock('${color}','${it.pack}', 'qa-${dtId}')">Add</button>
+             </td>
+             <td style="width:60px">${delta}</td>
+             <td style="text-align:right">${badg}</td>
+           </tr>
+         `;
+       });
+       html += `</tbody>`;
+     });
+     
+     const tab = getEl('inv-table');
+     if(tab) tab.innerHTML = html;
+     updateInvBadge();
+   }
+   
+   // --- HISTORY & SPRINT 3 LOGIC ---
+   function renderHistoryFeed() {
+     let html = '';
+     if (!S.sessions || S.sessions.length === 0) {
+       html = '<div class="card" style="text-align:center;color:var(--muted)">No history available yet</div>';
+     } else {
+       // Loop last 7 days for Free tier
+       const viewable = S.settings.proMode ? S.sessions : S.sessions.slice(0, 7);
+       
+       viewable.forEach(sess => {
+         const d = new Date(sess.date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
+         const bCount = sess.batches.length;
+         
+         // Aggregate counts
+         let totalPackages = 0, manifest = 0, clerk = 0;
+         let variants = {}; let slipsHTML = '';
+         
+         sess.batches.forEach((b, idx) => {
+           totalPackages += b.scans.length;
+           manifest += b.scans.filter(s => s.zone === S.settings.zoneNames.primary).length;
+           clerk += b.scans.filter(s => s.zone === S.settings.zoneNames.secondary).length;
+           
+           if(b.variants) {
+             Object.entries(b.variants).forEach(([v, q]) => { variants[v] = (variants[v]||0) + q; });
+           }
+           if(b.slipFileName) {
+               slipsHTML += `<span style="cursor:pointer; color:var(--accent); text-decoration:underline; margin-right:12px" onclick="downloadSlip('${b.slipFileId}', '${b.slipFileName}')">📄 ${b.slipFileName}</span>`;
+           }
+         });
+         
+         const vTags = Object.entries(variants).map(([v,q]) => `<span class="badge" style="background:var(--surface);border:1px solid var(--border);margin-right:6px">${v} &times; ${q}</span>`).join('');
+         
+         html += `
+           <div class="card">
+             <div class="flex justify-between align-center" style="margin-bottom:8px">
+               <b style="font-size:15px; color:var(--accent)">${d}</b>
+               <span class="badge" style="background:var(--surface2)">${bCount} batch${bCount>1?'es':''}</span>
+             </div>
+             <p style="margin-bottom:8px; font-size:15px">${totalPackages} packages (Manifest: ${manifest} &middot; Clerk: ${clerk})</p>
+             <div style="margin-bottom:12px; line-height:2">${vTags}</div>
+             <div style="margin-bottom:12px; background:var(--surface2); padding:8px; border-radius:6px; font-size:13px">${slipsHTML || '<i>No USPS Slips attached</i>'}</div>
+             <div style="font-size:12px; color:var(--muted)">
+               Committed batches starting at ${sess.batches[0]?.timestamp || 'Unknown'}
+             </div>
+           </div>
+         `;
+       });
+       
+       if (!S.settings.proMode && S.sessions.length > 7) {
+         html += `<div style="text-align:center;color:var(--muted);margin-top:16px"><i>${S.sessions.length - 7} older sessions hidden &mdash; upgrade to Pro</i></div>`;
+       }
+     }
+     const feed = getEl('history-feed');
+     if(feed) feed.innerHTML = html;
+   }
+
+   async function downloadSlip(fileId, name) {
+     const buf = await API.getFile(name);
+     if (!buf) { console.warn('Slip file not found:', name); return; }
+     const blob = new Blob([buf], {type:'application/pdf'});
+     const url = URL.createObjectURL(blob);
+     const anchor = document.createElement('a');
+     anchor.href = url; anchor.target = '_blank'; anchor.click();
+     setTimeout(() => URL.revokeObjectURL(url), 3000);
+   }
+
+   function updateTemplates(v) {
+     const p = v.trim() || '[TRACKING]';
+     const inr = `Hi! Thanks so much for reaching out and I’m so sorry to hear your package hasn’t arrived yet. I checked the tracking for your order (${p}) and USPS indicates that it was delivered. Could you double check with neighbors or your local post office? If they confirm it's lost, please start a request with TikTok support referencing the tracking number so we can get this resolved!`;
+     const inad = `Hi! Thanks for bringing this to our attention. I’m so sorry the item wasn’t as expected. Could you please send over a few photos of what you received so we can investigate what went wrong with order (${p})? Once we have those, we'll get it sorted immediately!`;
+     getEl('tpl-inr').value = inr;
+     getEl('tpl-inad').value = inad;
+   }
+
+   function copyTpl(id) {
+     const t = getEl('tpl-'+id).value;
+     navigator.clipboard.writeText(t).then(() => {
+       const b = event.target;
+       const old = b.innerText;
+       b.innerText = '✓ Copied!';
+       b.classList.add('btn-green');
+       setTimeout(() => { b.innerText = old; b.classList.remove('btn-green'); }, 2000);
+     });
+   }
+
+   async function logReturn(e) {
+     e.preventDefault();
+     const order = getEl('ret-order').value.trim();
+     const sku = getEl('ret-sku').value.trim();
+     const reason = getEl('ret-reason').value;
+     const res = getEl('ret-res').value;
+     const loss = parseFloat(getEl('ret-loss').value) || 0;
+
+     const ret = {
+        id: Date.now().toString(36),
+        date: new Date().toISOString(),
+        order, sku, reason, res, loss
+     };
+
+     if (!S.returns) S.returns = [];
+     S.returns.push(ret);
+     await saveS('returns');
+     e.target.reset();
+     updateReturnsUI();
+   }
+
+   function updateReturnsUI() {
+     const list = getEl('returns-list');
+     if (!list) return;
+
+     if (!S.returns || S.returns.length === 0) {
+       list.innerHTML = '<div style="color:var(--muted); text-align:center">No returns logged yet.</div>';
+       return;
+     }
+
+     // Fraud detection logic: 2+ "not_received" for same SKU in 30 days
+     const thirtyDaysAgo = new Date();
+     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+     
+     const recentINR = S.returns.filter(r => r.reason === 'not_received' && new Date(r.date) > thirtyDaysAgo);
+     const inrBySku = {};
+     recentINR.forEach(r => inrBySku[r.sku] = (inrBySku[r.sku] || 0) + 1);
+
+     let totalLoss = 0;
+     let html = '';
+     // Sort newest first
+     [...S.returns].sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => {
+       totalLoss += r.loss;
+       let fraudIcon = (r.reason === 'not_received' && inrBySku[r.sku] >= 2) ? ' <span title="High risk SKU: Multiple INRs recently">🚨</span>' : '';
+       
+       html += `
+         <div class="flex justify-between align-center" style="padding:8px 0; border-bottom:1px solid var(--border)">
+           <div>
+             <b style="color:var(--accent)">${r.order}</b> ${fraudIcon}<br>
+             <span style="font-size:12px; color:var(--muted)">${r.sku} &middot; ${r.reason} &middot; ${r.res}</span>
+           </div>
+           <div style="color:var(--red)">
+             ${r.loss > 0 ? '-$'+r.loss.toFixed(2) : ''}
+           </div>
+         </div>
+       `;
+     });
+
+     html = `<div style="margin-bottom:12px; font-weight:bold; color:var(--red)">Total Est. Loss: $${totalLoss.toFixed(2)}</div>` + html;
+     list.innerHTML = html;
+   }
+
+   // --- INITIALIZATION ---
+   async function initApp() {
+     try {
+       S.inventory   = await API.get('inventory')          || [];
+       S.colorOrder  = await API.get('color_order')        || [];
+       S.batches     = await API.get('batches')            || [];
+       S.held        = await API.get('held')               || [];
+       S.sessions    = await API.get('sessions')           || [];
+       S.settings    = await API.get('settings')           || {};
+       S.todayDelta  = await API.get('today_delta')        || {};
+       S.returns     = await API.get('returns')            || [];
+       const shipped = await API.get('shipped_trackings')  || [];
+       S.shippedT    = new Set(shipped);
+       S.labelFiles  = [];
+       S.uspsSlips   = [];
+
+       if (!S.inventory.length) {
+         S.inventory = DEFAULT_COLORS.flatMap(c => DEFAULT_PACKS.map(p => ({color:c, pack:p, stock:0})));
+         await saveS('inventory');
+       }
+       if (!S.colorOrder.length) { S.colorOrder = [...DEFAULT_COLORS]; await saveS('colorOrder'); }
+       if (!S.settings.carrierCloseTime) { S.settings = {...DEFAULT_SETTINGS}; await saveS('settings'); }
+
+       switchTab('scan');
+     } catch(e) {
+       console.error('initApp failed:', e);
+       document.getElementById('tab-content').innerHTML =
+         '<div style="padding:40px;text-align:center">' +
+         '<h2 style="color:var(--red)">Cannot connect to ShipKit server</h2>' +
+         '<p style="color:var(--muted)">Make sure run.bat is running, then reload this page.</p>' +
+         '<p style="font-size:12px;color:var(--muted)">' + e.message + '</p>' +
+         '<button class="btn btn-green" style="margin-top:16px" onclick="location.reload()">Retry</button>' +
+         '</div>';
+     }
+   }
+
+   // --- LIVE UI UPDATES ---
+   function updateScanUI() {
+     if(!getEl('step-upload-card')) return;
+     
+     // 1. Upload section & Checklists
+     let checks = '';
+     if (APP_STATE.labelsLoaded || APP_STATE.slipsLoaded) {
+       checks += `<div class="pill">
+         <span>📄 Labels / Slips Loaded</span>
+         <span class="badge badge-green">${S.labelFiles ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0), 0) : 0} Trackings</span>
+       </div>`;
+     }
+     if (APP_STATE.csvLoaded) {
+       checks += `<div class="pill">
+         <span>📊 Manifest CSV Loaded</span>
+         <span class="badge badge-green">Ready</span>
+         <span id="sla-pill-badge" class="badge hidden"></span>
+       </div>`;
+     }
+     getEl('file-checklists').innerHTML = checks;
+     
+     if (APP_STATE.labelsLoaded || APP_STATE.csvLoaded) {
+       getEl('drop-zone').classList.add('hidden');
+       getEl('clear-scans-btn').classList.remove('hidden');
+       getEl('step-scan-card').classList.remove('disabled');
+     } else {
+       getEl('drop-zone').classList.remove('hidden');
+       getEl('clear-scans-btn').classList.add('hidden');
+       getEl('step-scan-card').classList.add('disabled');
+     }
+     
+     // 2. Pick list
+     if (APP_STATE.csvLoaded) {
+       getEl('pick-list-sec').classList.remove('hidden');
+       renderPickList();
+     } else {
+       getEl('pick-list-sec').classList.add('hidden');
+     }
+
+     // 3. Pile cards (Manifest info)
+     const expected = S.labelFiles ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0), 0) : 0;
+     const manifestScans = APP_STATE.scanned.filter(s => s.zone === S.settings.zoneNames.primary).length;
+     const clerkScans = APP_STATE.scanned.filter(s => s.zone === S.settings.zoneNames.secondary).length;
+     
+     getEl('pile-cards').innerHTML = `
+       <div class="card" style="flex:1; margin:0">
+         <div class="badge" style="margin-bottom:8px">${S.settings.zoneNames.primary}</div>
+         <div style="font-size:24px; font-weight:700; color:${manifestScans === expected && expected > 0 ? 'var(--green)' : 'var(--text)'}">${manifestScans} / ${expected}</div>
+       </div>
+       <div class="card" style="flex:1; margin:0">
+         <div class="badge" style="margin-bottom:8px">${S.settings.zoneNames.secondary}</div>
+         <div style="font-size:24px; font-weight:700">${clerkScans}</div>
+       </div>
+     `;
+     
+     getEl('scan-progress-text').innerText = `${APP_STATE.scanned.length} sorted`;
+     
+     // 4. Smart Ship Button
+     const btn = getEl('smart-ship-btn');
+     if (APP_STATE.scanned.length === 0) {
+       if (APP_STATE.labelsLoaded || APP_STATE.csvLoaded) {
+         btn.disabled = false;
+         btn.innerText = 'Ship & Save All';
+         btn.className = 'btn btn-green';
+       } else {
+         btn.disabled = true;
+         btn.innerText = 'Ship & Save';
+         btn.className = 'btn';
+       }
+     } else if (manifestScans < expected) {
+       btn.disabled = false;
+       btn.innerText = `Ship & Save — ${manifestScans}/${expected}`;
+       btn.className = 'btn btn-teal';
+     } else {
+       btn.disabled = false;
+       btn.innerText = `Ship & Save — ${manifestScans}/${expected}`;
+       btn.className = 'btn btn-green';
+     }
+     
+     // 5. Hold Subpanel + Batch Cards
+     renderHeldQueue();
+     renderBatchCards();
+   }
+
+   function openSettings() {
+     document.getElementById('settings-modal').style.display = 'flex';
+   }
+
+   document.addEventListener('DOMContentLoaded', initApp);
+   </script>
+
+   <div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+     <div class="card" style="width:400px; padding:20px; background:var(--bg);">
+       <h2 style="margin-top:0">Settings</h2>
+       
+       <!-- Printer Format -->
+       <div style="margin-bottom:14px">
+         <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">LABEL FORMAT</label>
+         <div style="display:flex;gap:8px">
+           <button id="printer-4x6-btn" onclick="setPrinter('4x6')" class="btn" style="flex:1;font-size:12px">4×6 Thermal</button>
+           <button id="printer-8x11-btn" onclick="setPrinter('8x11')" class="btn" style="flex:1;font-size:12px">8.5×11 Standard</button>
+         </div>
+       </div>
+       
+       <!-- Primary Zone Name -->
+       <div style="margin-bottom:14px">
+         <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">PRIMARY ZONE NAME</label>
+         <input type="text" id="settings-zone-primary" placeholder="e.g. Manifest" style="width:100%">
+       </div>
+       
+       <!-- Secondary Zone Name -->
+       <div style="margin-bottom:14px">
+         <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:6px">SECONDARY ZONE NAME</label>
+         <input type="text" id="settings-zone-secondary" placeholder="e.g. Clerk Counter" style="width:100%">
+       </div>
+       
+       <button class="btn" style="width:100%; margin-top:20px;" onclick="document.getElementById('settings-modal').style.display='none'">Close</button>
+     </div>
+   </div>
+   <div id="celebration-overlay">
+     <div style="font-size:48px">🎉</div>
+     <div id="celebration-text">Batch Shipped!</div>
+     <div style="font-size:13px;color:var(--muted)">
+       Great work — packages are on their way
+     </div>
+   </div>
 </body>
 </html>
