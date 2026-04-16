@@ -1,37 +1,55 @@
 @echo off
-REM Development runner for ShipKit (Windows)
-REM Run this to start the app during development
+title ShipKit
+color 0B
 
 echo.
-echo ╔════════════════════════════════════════╗
-echo ║  ShipKit - Development Mode            ║
-echo ║  Press Ctrl+C to stop                  ║
-echo ╚════════════════════════════════════════╝
+echo ========================================
+echo   ShipKit - Local Fulfillment Tool
+echo ========================================
 echo.
 
-REM Check if Python is installed
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo [ERROR] Python is not installed or not in PATH
-    pause
-    exit /b 1
-)
+REM Create folders if they don't exist
+if not exist "data" mkdir data
+if not exist "uploads" mkdir uploads
 
-REM Check if dependencies are installed
-python -c "import fastapi" >nul 2>&1
+REM Check if Python dependencies are installed
+python -c "import webview" >nul 2>&1
 if errorlevel 1 (
     echo [Setup] Installing Python dependencies...
-    pip install -r requirements.txt
+    echo         This only happens once...
+    echo.
+    pip install pywebview fastapi uvicorn aiosqlite python-multipart pydantic
+    if errorlevel 1 (
+        echo.
+        echo [ERROR] Failed to install dependencies.
+        echo Make sure Python is installed correctly.
+        pause
+        exit /b 1
+    )
+    echo.
+    echo [Setup] Dependencies installed successfully!
+    echo.
 )
 
-REM Check if frontend build exists
-if not exist "frontend\build" (
-    echo [Setup] Building React frontend...
-    call npm run build
-)
+echo Starting ShipKit...
+echo.
+echo If the window doesn't open, check for errors below.
+echo Press Ctrl+C to stop the app.
+echo.
 
-REM Start the app
-echo [Starting] ShipKit desktop application...
 python main.py
+
+if errorlevel 1 (
+    echo.
+    echo ========================================
+    echo [ERROR] ShipKit failed to start.
+    echo ========================================
+    echo.
+    echo Common fixes:
+    echo 1. Make sure Python 3.8+ is installed
+    echo 2. Try running: pip install pywebview fastapi uvicorn aiosqlite
+    echo 3. Check the error message above
+    echo.
+)
 
 pause
