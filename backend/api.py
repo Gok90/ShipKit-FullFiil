@@ -13,14 +13,15 @@ from pathlib import Path
 
 from database import get_db, init_db, seed_catalog
 from file_manager import save_upload, get_batch_folder, list_uploads_by_date, delete_batch, get_upload_path
+from shipkit_ui import get_complete_ui
 
 app = FastAPI()
 
 # ============ Serve HTML UI ============
 @app.get("/", response_class=HTMLResponse)
 async def serve_ui():
-    """Serve the main application UI"""
-    return get_html_ui()
+    """Serve the complete ShipKit application UI"""
+    return get_complete_ui()
 
 # CORS for local development
 app.add_middleware(
