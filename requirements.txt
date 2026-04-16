@@ -1,10 +1,5 @@
-fastapi==0.109.0
-uvicorn==0.27.0
-python-multipart==0.0.6
-pydantic==2.5.0
-pydantic-settings==2.1.0
-pywebview==5.1
-PyAudio==0.2.13
-pyttsx3==2.90
-python-dateutil==2.8.2
-pyinstaller==6.1.0
+fastapi==0.135.3
+uvicorn==0.44.0
+python-multipart==0.0.24
+pydantic==2.12.5
+aiosqlite==0.22.1

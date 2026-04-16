@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
 ShipKit Desktop App
-Launches FastAPI backend + PyWebView frontend
-No Node.js or React build required - uses built-in HTML UI
+Launches FastAPI backend with browser-based UI
+No Node.js, React, or complex dependencies required
 """
 
 import sys
-import threading
+import webbrowser
 import time
 from pathlib import Path
 
@@ -17,61 +17,55 @@ BACKEND_DIR = PROJECT_ROOT / "backend"
 # Add backend to path before imports
 sys.path.insert(0, str(BACKEND_DIR))
 
-def start_backend():
-    """Start FastAPI server in background"""
+def start_app():
+    """Start FastAPI server and open browser"""
     try:
         import uvicorn
         from api import app
+        from database import init_db
         
-        print("[ShipKit] Backend starting on http://127.0.0.1:8000")
+        # Initialize database
+        print("[ShipKit] Initializing database...")
+        init_db()
+        
+        print("""
+    ========================================
+      ShipKit - Local Fulfillment Tool
+    ========================================
+    """)
+        print("[ShipKit] Opening http://127.0.0.1:8000 in browser...")
+        
+        # Open browser
+        try:
+            webbrowser.open("http://127.0.0.1:8000")
+        except:
+            print("[ShipKit] Could not open browser automatically.")
+            print("[ShipKit] Please open http://127.0.0.1:8000 manually.")
+        
+        print("[ShipKit] Backend running. Press Ctrl+C to stop.\n")
+        
+        # Start server
         uvicorn.run(
             app,
             host="127.0.0.1",
             port=8000,
-            log_level="warning"
+            log_level="info"
         )
+        
     except Exception as e:
-        print(f"[ShipKit ERROR] Backend failed: {e}")
+        print(f"\n[ShipKit ERROR] Failed to start: {e}")
         import traceback
         traceback.print_exc()
-
-def start_app():
-    """Start PyWebView frontend"""
-    import webview
-    
-    # Wait for backend
-    time.sleep(1.5)
-    
-    print("[ShipKit] Opening application window...")
-    
-    window = webview.create_window(
-        title="ShipKit - Fulfillment Operations",
-        url="http://127.0.0.1:8000",
-        width=1400,
-        height=900,
-        min_size=(1000, 600),
-        resizable=True
-    )
-    
-    webview.start()
+        print("\nTroubleshooting:")
+        print("1. Make sure Python 3.8+ is installed")
+        print("2. Run: pip install fastapi uvicorn aiosqlite python-multipart pydantic")
+        print("3. Check that you're in the ShipKit folder")
+        input("\nPress Enter to exit...")
 
 if __name__ == "__main__":
-    print("""
-    ========================================
-      ShipKit - Local Fulfillment Tool
-      Starting application...
-    ========================================
-    """)
-    
     # Create required folders
     (PROJECT_ROOT / "data").mkdir(exist_ok=True)
     (PROJECT_ROOT / "uploads").mkdir(exist_ok=True)
     
-    # Start backend in background thread
-    backend_thread = threading.Thread(target=start_backend, daemon=True)
-    backend_thread.start()
-    
-    # Start frontend (blocks until window closed)
+    # Start app
     start_app()
-    
-    print("\n[ShipKit] Application closed. Goodbye!")

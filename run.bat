@@ -13,12 +13,12 @@ if not exist "data" mkdir data
 if not exist "uploads" mkdir uploads
 
 REM Check if Python dependencies are installed
-python -c "import webview" >nul 2>&1
+python -c "import fastapi" >nul 2>&1
 if errorlevel 1 (
     echo [Setup] Installing Python dependencies...
     echo         This only happens once...
     echo.
-    pip install pywebview fastapi uvicorn aiosqlite python-multipart pydantic
+    pip install fastapi uvicorn aiosqlite python-multipart pydantic
     if errorlevel 1 (
         echo.
         echo [ERROR] Failed to install dependencies.
@@ -33,7 +33,7 @@ if errorlevel 1 (
 
 echo Starting ShipKit...
 echo.
-echo If the window doesn't open, check for errors below.
+echo Opening http://127.0.0.1:8000 in your browser...
 echo Press Ctrl+C to stop the app.
 echo.
 
@@ -47,7 +47,7 @@ if errorlevel 1 (
     echo.
     echo Common fixes:
     echo 1. Make sure Python 3.8+ is installed
-    echo 2. Try running: pip install pywebview fastapi uvicorn aiosqlite
+    echo 2. Try running: pip install fastapi uvicorn aiosqlite python-multipart pydantic
     echo 3. Check the error message above
     echo.
 )
