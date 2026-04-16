@@ -1,10 +1,10 @@
 @echo off
-title ShipKit
+title ShipKit - Native Desktop App
 color 0B
 
 echo.
 echo ========================================
-echo   ShipKit - Local Fulfillment Tool
+echo   ShipKit - Native Desktop Application
 echo ========================================
 echo.
 
@@ -18,7 +18,7 @@ if errorlevel 1 (
     echo [Setup] Installing Python dependencies...
     echo         This only happens once...
     echo.
-    pip install fastapi uvicorn aiosqlite python-multipart pydantic
+    pip install fastapi uvicorn aiosqlite python-multipart pydantic pywebview
     if errorlevel 1 (
         echo.
         echo [ERROR] Failed to install dependencies.
@@ -32,9 +32,9 @@ if errorlevel 1 (
 )
 
 echo Starting ShipKit...
+echo Opening native desktop window...
 echo.
-echo Opening http://127.0.0.1:8000 in your browser...
-echo Press Ctrl+C to stop the app.
+echo Press Ctrl+C in this window to stop the app.
 echo.
 
 python main.py
@@ -47,7 +47,7 @@ if errorlevel 1 (
     echo.
     echo Common fixes:
     echo 1. Make sure Python 3.8+ is installed
-    echo 2. Try running: pip install fastapi uvicorn aiosqlite python-multipart pydantic
+    echo 2. Try running: pip install fastapi uvicorn aiosqlite python-multipart pydantic pywebview
     echo 3. Check the error message above
     echo.
 )
