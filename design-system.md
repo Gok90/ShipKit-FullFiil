@@ -1,320 +1,419 @@
-# ShipKit Design System — Round 1
+# ShipKit Design System — Established Round 1
 
-## Tokens
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| **bg** | `#0f0a1a` | Page background |
-| **surface** | `#1a1230` | Card/panel bg |
-| **surface-2** | `#2d1f42` | Row/element bg |
-| **surface-3** | `#3d2d52` | Hover/active state bg |
-| **border** | `#5a4a7a` | Dividers, borders |
-| **accent** | `#5ce0d0` | Primary teal — rare, precious |
-| **secondary** | `#a78bfa` | Violet — gradients, accents |
-| **teal** | `#3fc5e7` | Group headers, focus borders |
-| **green** | `#10b981` | Success, complete state |
-| **yellow** | `#f59e0b` | Warning — SHORT, unmatched |
-| **red** | `#ef4444` | Error/critical — OUT |
-| **text** | `#ffffff` | Primary text |
-| **muted** | `#b8a7d0` | Secondary text, hints |
-| | | |
-| **shadow-card** | `0 8px 32px -8px rgba(92,40,160,0.3), 0 2px 8px rgba(0,0,0,0.4)` | Card elevation |
-| **shadow-glow** | `0 0 24px rgba(92,224,208,0.15)` | Focus glow on rows |
-| **shadow-inset** | `inset 0 1px 0 rgba(255,255,255,0.04)` | Subtle inner highlight |
-| | | |
-| **ease** | `[0.22, 1, 0.36, 1]` | All motion (cubic-bezier) |
-| **stagger-delay** | `25ms` | Row entrance (cap 500ms) |
-| **row-hover-transition** | `120ms` | Row state changes |
-| **progress-transition** | `500ms` | Progress bar width |
-| **pulse-duration** | `300ms` | Qty badge on check |
-| **chevron-rotation** | `200ms` | Collapse toggle |
-
-### Fonts (Google Fonts / Fontshare)
-
-```tailwind
-fontFamily: {
-  display: ["'Instrument Serif'", "serif"],
-  sans:    ["'General Sans'", "sans-serif"],
-  mono:    ["'JetBrains Mono'", "monospace"],
-}
-```
-
-## Primitives
-
-### 1. **Row** (base primitive)
-
-The foundation for all list items across the app. Used by: pick list, print labels, print slips, scan log, batch cards, held queue, inventory.
-
-**Tailwind classes:**
-```
-flex items-center gap-3 px-3 py-2 rounded-lg border-l-2
-bg-surface-2 border-l-transparent hover:bg-surface-3
-transition-all duration-150 cursor-pointer
-```
-
-**States:**
-```jsx
-// OK (default)
-<div className="bg-surface-2 border-l-transparent text-text" />
-
-// SHORT (warning)
-<div className="bg-gradient-to-r from-[#3d2e00] to-[#2d1f42] border-l-yellow-500 text-yellow-400" />
-
-// OUT (error)
-<div className="bg-gradient-to-r from-[#3d1515] to-[#2d1f42] border-l-red-500 text-red-400" />
-
-// Unmatched
-<div className="bg-surface-2 border-l-dashed border-l-muted text-muted" />
-
-// Checked (any state + opacity)
-<div className="opacity-40 line-through" />
-
-// Focused (ok state + glow)
-<div className="border-l-accent shadow-glow" />
-```
-
-### 2. **ProgressStrip** (sticky progress bar)
-
-Persistent progress indicator. Used by: pick list, print labels, print slips, scan session.
-
-**Tailwind:**
-```
-h-1 w-full rounded-full bg-white/6 overflow-hidden
-motion:width 0.5s cubic-bezier(0.22,1,0.36,1)
-bg-gradient-to-r from-accent to-secondary
-```
-
-**At 100%:** Solid `bg-green`, shimmer stops, counter becomes `italic text-green`.
-
-### 3. **StatusBadge** (pill indicator)
-
-Semantic status label. Used by: pick list (SHORT/OUT/NO MATCH), held queue (expired/expiring), inventory (LOW/OUT), history (cancelled/disputed).
-
-**Tailwind:**
-```
-px-2 py-0.5 rounded-md text-xs font-semibold border-0
-```
-
-**Variants:**
-```jsx
-// SHORT
-<span className="bg-yellow-500/20 text-yellow-400">SHORT</span>
-
-// OUT
-<span className="bg-red-500/20 text-red-400">OUT</span>
-
-// NO MATCH
-<span className="bg-yellow-500/20 text-yellow-400">NO MATCH</span>
-```
-
-### 4. **QtyBadge** (large teal pill)
-
-Quantity indicator with accent glow. Used by: pick list (×N required), pile cards (card count), inventory (stock count).
-
-**Tailwind:**
-```
-px-3 py-1 rounded-lg bg-teal/20 text-teal font-mono font-semibold
-```
-
-**Pulse animation:** scale 1 → 1.15 → 1, 300ms ease, triggers on check only.
-
-### 5. **PackHeader** (uppercase group label)
-
-Reusable section divider. Used by: pick list groups (2PK, 4PK, UNMATCHED), vault dates, history dates.
-
-**Tailwind:**
-```
-text-xs font-bold tracking-widest uppercase border-b border-teal/30 pb-2
-text-teal
-```
-
-**Complete state:** Add `text-green italic` "done ✦" tag (fade in 300ms).
-
-### 6. **StepHeader** (collapsible section header)
-
-Found in Step 1-5 cards. Structure: chevron + step-num + title + state badge.
-
-**Tailwind:**
-```
-flex items-center gap-2 pb-4 border-b border-border/40
-```
-
-Chevron rotates -90° on collapse, 200ms ease.
-
-### 7. **Kbd** (keyboard hint)
-
-Text-only keyboard legend. Used by: pick list, scan session, vault.
-
-**Tailwind:**
-```
-text-xs font-mono text-muted
-```
-
-Example: `[space] check · [j/k] move · [esc] exit`
-
-### 8. **Checkbox** (shadcn primitive)
-
-Custom checkbox with green accent-color on check.
-
-**Tailwind:**
-```
-h-5 w-5 accent-green cursor-pointer
-focus:outline-2 focus:outline-accent/40 focus:outline-offset-2
-```
-
-### 9. **ColorDot** (visual indicator)
-
-Small circular swatch for color variant. Used in: pick list, inventory.
-
-**Tailwind:**
-```
-h-3 w-3 rounded-full flex-shrink-0
-style={{ backgroundColor: colorHex }}
-```
-
-Gray (`bg-gray-600`) for unmatched.
-
-### 10. **Atmosphere** (page-level)
-
-Subtle ambient gradient mesh + noise for depth.
-
-**CSS:**
-```css
-/* Radial gradient mesh (fixed) */
-::before {
-  radial-gradient(ellipse at top-right 6%, rgba(167,139,250,0.12));
-  radial-gradient(ellipse at bottom-left 4%, rgba(63,197,231,0.08));
-  800px blur;
-}
-
-/* SVG noise at 3% opacity */
-::after {
-  feTurbulence numOctaves="3"
-  opacity: 3%
-}
-
-/* Dashed corner marks (4 corners, 4px segments, 40% opacity) */
-border-l/top/r/bottom 2px muted opacity-40
-```
-
-## Motion Values (as constants)
-
-```typescript
-// Easings
-export const EASE = [0.22, 1, 0.36, 1];
-
-// Durations (ms)
-export const DURATION = {
-  stagger: 25,      // per row
-  stagger_cap: 500, // max total entrance
-  hover: 120,
-  progress: 500,
-  pulse: 300,
-  chevron: 200,
-  fade: 300,
-};
-
-// Variants (motion/react)
-export const rowVariants = {
-  hidden: { opacity: 0, y: 6 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: Math.min(i * DURATION.stagger, DURATION.stagger_cap),
-      duration: 400,
-    },
-  }),
-};
-
-export const pulseVariants = {
-  rest: { scale: 1 },
-  pulse: { scale: 1.15, transition: { duration: DURATION.pulse, ease: EASE } },
-};
-```
-
-## Example Snippets
-
-### Row (Pick List Item)
-
-```jsx
-<motion.div
-  custom={index}
-  initial="hidden"
-  animate="visible"
-  variants={rowVariants}
-  className={`
-    flex items-center gap-3 px-3 py-2 rounded-lg border-l-2
-    transition-all duration-${DURATION.hover}
-    ${checked ? 'opacity-40' : ''}
-    hover:bg-surface-3 cursor-pointer
-    ${status === 'short' ? 'bg-gradient-to-r from-[#3d2e00] to-[#2d1f42] border-l-yellow-500 text-yellow-400' : ''}
-    ${status === 'out' ? 'bg-gradient-to-r from-[#3d1515] to-[#2d1f42] border-l-red-500 text-red-400' : ''}
-    ${focused ? 'border-l-accent shadow-glow' : 'bg-surface-2 border-l-transparent'}
-  `}
-  onClick={() => toggle(key)}
->
-  <Checkbox checked={checked} onChange={toggle} className="accent-green" />
-  <div className="h-3 w-3 rounded-full flex-shrink-0" style={{ backgroundColor: colorHex }} />
-  <div className="flex-1">
-    <div className="font-medium">{color}</div>
-    <div className="text-xs opacity-70">stock: {stock}</div>
-  </div>
-  {status === 'short' && <Badge className="bg-yellow-500/20 text-yellow-400">SHORT</Badge>}
-  <motion.div
-    animate={checked ? 'pulse' : 'rest'}
-    variants={pulseVariants}
-    className="px-3 py-1 rounded-lg bg-teal/20 text-teal font-mono font-semibold"
-  >
-    ×{qty}
-  </motion.div>
-</motion.div>
-```
-
-### ProgressBar (100% complete)
-
-```jsx
-<div className="h-1 w-full rounded-full bg-white/6 overflow-hidden">
-  <motion.div
-    animate={{
-      width: '100%',
-      background: '#10b981',
-    }}
-    transition={{ duration: 500, ease: EASE }}
-    className="h-full"
-  />
-</div>
-<p className="text-xs font-mono italic text-green">complete ✓</p>
-```
-
-### PackHeader (done state)
-
-```jsx
-<div className="flex items-center gap-2 border-b border-teal/30 pb-2">
-  <span className="text-xs font-bold tracking-widest uppercase text-teal">2PK</span>
-  {allGroupItemsChecked && (
-    <motion.span
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 300, ease: EASE }}
-      className="text-xs font-semibold text-green italic"
-    >
-      done ✦
-    </motion.span>
-  )}
-</div>
-```
-
-## Constraints (Do Not Violate)
-
-- **Fonts:** No Inter, Roboto, Poppins, Geist, Space Grotesk, system-ui.
-- **Gradients:** Never purple-to-pink primary. Teal-to-violet accents only.
-- **Hover:** Never `scale-105 shadow-xl`. Use `surface-2 → surface-3` + border brightening.
-- **Motion:** No spring, no bounce. Always `ease [0.22, 1, 0.36, 1]`.
-- **Spacing:** Tight + breathable, never overcrowded or sparse.
-- **Icons:** Text symbols only (✓, ✦, ×). Never emoji.
-- **Shadows:** `shadow-card` for elevation, `shadow-glow` for focus, `shadow-inset` for subtle depth.
+## Overview
+This document establishes the visual and interaction patterns for ShipKit, an internal fulfillment operator tool. All design decisions made in Round 1 (Pick List) become the contract for Rounds 2–8. This system is intentionally opinionated and complete — it does not evolve; it repeats.
 
 ---
 
-**Next rounds will follow this system. Do not deviate; extend.**
+## Color Palette
+
+### Logo Brand (signature colors — appear 3–5 times per screen)
+| Token | Hex | Role | Usage |
+|-------|-----|------|-------|
+| `--logo-cyan` | `#3fc5e7` | Primary action, interactive focus | Progress bars, chevrons, primary buttons, focus states |
+| `--logo-purple` | `#7122c6` | Authority, brand elevation | Progress gradient (with cyan), category headers, elevated accents |
+
+**Gradient**: `linear-gradient(135deg, #7122c6, #3fc5e7)` — use on primary buttons, progress fills, focused row edges, top-left brand mark.
+
+### Neutral Foundation
+| Token | Hex | Role | Usage |
+|-------|-----|------|-------|
+| `--black` | `#070908` | Deepest background | Page bg, always with atmosphere |
+| `--dark-blue` | `#081B36` | Elevated surface 1 | Cards, main containers |
+| `--dark-grey` | `#363D40` | Surface 2 | Row bases, inset elements |
+| `--grey` | `#A7AEB2` | Muted text | Secondary labels, helper text |
+| `--white` | `#F8FAF8` | Primary text | All primary content |
+
+### Status (functional — reserved for exact purpose)
+| Token | Hex | Role | Usage |
+|-------|-----|------|-------|
+| `--red` | `#C23320` | OUT / error | Out-of-stock rows, destructive actions, error states |
+| `--orange` | `#DC7C40` | SHORT / warning | Short-stock rows, held items, warnings |
+| `--green` | `#38B837` | shipped / success | Progress complete, checked states, success messages |
+| `--info` | `#3E8CE4` | Informational | Neutral notifications (not in Pick List yet) |
+
+### Accents (decorative — used with intent)
+| Token | Hex | Role | Usage |
+|-------|-----|------|-------|
+| `--teal` | `#74CABF` | Soft info accent | Secondary markers (not prominent in Pick List) |
+| `--lime` | `#F8FF6B` | Attention grabber | New items, fresh session banner (RARE) |
+| `--purple` | `#6947B8` | Secondary purple | Echo of logo-purple, alternate accents |
+| `--magenta` | `#DC5D8C` | Celebration | Picking Mode active state, celebration moments |
+| `--pink` | `#F5BEE9` | Soft notification | Gentle notification surfaces |
+| `--gold` | `#A85D00` | Pro / premium | Pro features, power-user affordances |
+
+---
+
+## Typography
+
+### Font Choices
+- **Display/Brand**: Source Serif 4 (Google Fonts) — characterful serif with italic variant, used for section titles, emphasis, completion states
+- **UI/Body**: Space Mono (Google Fonts) — monospace, used for all UI labels, counts, technical text, and numeric displays
+- **Numeric**: Space Mono with `font-variant-numeric: tabular-nums` — ensures aligned columns for stock, qty, timestamps
+
+### Scale
+| Use | Family | Size | Weight | Letter-spacing |
+|-----|--------|------|--------|-----------------|
+| Section title | Space Mono | 16px | 700 | 0.5px |
+| Label / Group header | Space Mono | 10px | 700 | 1.5px |
+| Body text | Source Serif 4 | 13px | 400 | 0px |
+| Small helper | Space Mono | 11px | 400 | 0.3px |
+| Tiny (badges) | Space Mono | 9px | 700 | 0.5px |
+
+### Rules
+- **Numbers always tabular**: `font-variant-numeric: tabular-nums`
+- **Italic reserved for**: completion states, soft emphasis only
+- **Emoji use**: Only in "done ✦", focus indicators, and status states
+
+---
+
+## Motion & Animation
+
+### Easing Curve
+**All transitions use**: `cubic-bezier(0.22, 1, 0.36, 1)` — confident ease-out. No bounce. No elasticity.
+
+### Durations
+| Action | Duration |
+|--------|----------|
+| Hover state change | 120ms |
+| State change (opacity, color) | 250ms |
+| Progress bar animation | 500ms |
+| Collapse/expand | 300ms |
+| Row stagger cap | 500ms total |
+
+### Row Entrance
+- Stagger: 25ms offset per row
+- Cap: 500ms total (not cumulative after 20 rows)
+- Easing: `cubic-bezier(0.22, 1, 0.36, 1)`
+
+### Qty Pulse (on check)
+- Duration: 300ms
+- Scale: 1 → 1.15 → 1
+- Easing: `cubic-bezier(0.22, 1, 0.36, 1)`
+
+### Chevron Rotation
+- Duration: 200ms
+- Easing: `cubic-bezier(0.22, 1, 0.36, 1)`
+- Rotate: 0° ↔ -90°
+
+---
+
+## 10 Reusable Primitives
+
+### 1. Row
+**Atomic list row — used in: Pick List, Print Labels, Print Slips, Scan Log, Hold Queue, Batch Cards, Inventory, History**
+
+**Variants**: ok · short · out · unmatched · checked · focused
+
+**Base classes**:
+```css
+.pick-row {
+  grid-template-columns: 20px 16px 1fr auto auto auto;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(54, 61, 64, 0.2);
+  border: 1px solid rgba(167, 174, 178, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+```
+
+**Focused variant**: Left border 3px cyan, glow shadow, bg brightens to `rgba(63, 197, 231, 0.1)`
+
+---
+
+### 2. StatusBadge
+**Pills for SHORT/OUT/NO MATCH/LOW/HELD/CANCELLED/SHIPPED/PRO**
+
+**Mapping**:
+- SHORT / LOW / HELD → orange (#DC7C40)
+- OUT / CANCELLED → red (#C23320)
+- SHIPPED → green (#38B837)
+- PRO → gold (#A85D00)
+- NO MATCH / INFO → orange (#DC7C40)
+
+**Base classes**:
+```css
+.pick-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+```
+
+---
+
+### 3. ProgressStrip
+**Sticky progress bar with counter — used by: Pick List, Print Labels, Print Slips, Scan Progress**
+
+**Structure**:
+- Sticky top, z-index 10
+- Thin track (5px height)
+- Animated fill with brand gradient
+- Counter text in Space Mono, tabular-nums
+- **100% state**: gradient becomes green, text italic, color green
+
+**Base classes**:
+```css
+.pick-progress-track {
+  height: 5px;
+  background: rgba(163, 61, 228, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.pick-progress-fill {
+  background: linear-gradient(90deg, #7122c6, #3fc5e7);
+  transition: width 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pick-progress-fill.complete {
+  background: linear-gradient(90deg, #38b837, #10b981);
+}
+```
+
+---
+
+### 4. StepHeader
+**Collapsible section header with number + title + state pill + optional right-side action button**
+
+**Used by**: Steps 1–5 in Scan tab
+
+**Base structure**:
+- Flex row: [chevron] [title] [summary] [action-btn]
+- Chevron rotates -90° on collapse
+- Easing: 200ms, `cubic-bezier(0.22, 1, 0.36, 1)`
+
+---
+
+### 5. PackHeader
+**Uppercase tracked micro-label with rule — used by: Pick List groups, Vault date groups, History date cards, Inventory color groups**
+
+**Base classes**:
+```css
+.pick-group-header {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #3fc5e7;
+  border-bottom: 1px solid rgba(63, 197, 231, 0.3);
+  padding-bottom: 8px;
+}
+
+.pick-group-header.unmatched {
+  color: #dc7c40;
+}
+```
+
+**Variants**: Default (cyan) · unmatched (orange)
+
+---
+
+### 6. QtyBadge
+**Prominent numeric pill (×N) — used by: Pick List qty, Scan pile counts, Inventory stock, Batch scan counts**
+
+**Base classes**:
+```css
+.pick-qty-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3fc5e7;
+  background: rgba(63, 197, 231, 0.15);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+}
+```
+
+**Behavior**: Pulses (scale 1.15) on check, 300ms, `cubic-bezier(0.22, 1, 0.36, 1)`
+
+---
+
+### 7. CategoryMarker
+**Small colored indicator (dot / bar / chip) — used by: color dots in pick list, type icons in vault, zone markers in batch cards**
+
+**Color dot**:
+```css
+.pick-color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+```
+
+**Fallback**: #666 (grey) for unmatched items
+
+---
+
+### 8. PrimaryButton
+**With brand-gradient variant — used by: Smart Ship, Arm Scanner, Print actions, Picking Mode**
+
+**Base**:
+```css
+.pick-mode-btn {
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #7122c6, #3fc5e7);
+  border: none;
+  border-radius: 6px;
+  color: #f8faf8;
+  font-weight: 600;
+  font-size: 11px;
+  cursor: pointer;
+  transition: opacity 120ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+```
+
+**Active state** (Picking Mode on): `background: linear-gradient(135deg, #dc5d8c, #3fc5e7)`
+
+---
+
+### 9. EmptyState
+**Treated with color and type tastefully — used by: empty pick list, empty hold queue, empty history, empty vault**
+
+**Base classes**:
+```css
+.pick-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #a7aeb2;
+  font-size: 13px;
+  border: 2px dashed rgba(63, 197, 231, 0.2);
+  border-radius: 8px;
+  font-style: italic;
+  background: rgba(63, 197, 231, 0.02);
+}
+```
+
+---
+
+### 10. ToastMessage
+**Notification patterns by status (success/warn/error/info)**
+
+**Mapping**:
+- Success → green (#38B837)
+- Warning/Held → orange (#DC7C40)
+- Error/Out → red (#C23320)
+- Info → info-blue (#3E8CE4)
+
+**Position**: Fixed bottom-right, 20px margin, 300ms fade
+
+---
+
+## Atmospheric Details (Established)
+
+### 1. Gradient Mesh Background
+```css
+/* Logo-purple blob top-right at 5% opacity, 900px blur */
+background: radial-gradient(ellipse at center, rgba(113, 34, 198, 0.05) 0%, transparent 70%);
+
+/* Logo-cyan blob bottom-left at 3% opacity, 900px blur */
+background: radial-gradient(ellipse at center, rgba(63, 197, 231, 0.03) 0%, transparent 70%);
+```
+
+### 2. SVG Grain Overlay
+- 3% opacity over entire viewport
+- Turbulence filter with 0.9 amplitude, 3 octaves
+- Subtle texture only visible to eye at screen edges
+
+### 3. Dashed Corner Marks
+- 4 corners (top-left, top-right, bottom-left, bottom-right)
+- 1px dashed border, 4px width/height
+- Color: `--grey` (#A7AEB2) at 40% opacity
+- Terminal-UI reference
+
+### 4. ShipKit Brand Mark
+- Top-left corner in display font (Source Serif 4) italic
+- "ops" or "ShipKit" (1px brand-gradient underline)
+- 30% opacity, pointer-events-none
+
+### 5. Keyboard Hint Strip
+**At bottom of Pick List**:
+```html
+[space] check · [j/↓] next · [k/↑] prev · [esc] exit
+```
+- Font: Space Mono 10px
+- Color: grey with accent kbd styling
+- Appears only when picking mode is active
+
+---
+
+## Interaction Patterns (Established)
+
+### Check Row
+1. User clicks checkbox or row
+2. → sessionStorage updates immediately
+3. → Opacity fades to 0.4
+4. → Strike-through animates on color name
+5. → Qty badge pulses (1 → 1.15 → 1 over 300ms)
+6. → Focus auto-advances to next unchecked row
+
+### Keyboard Navigation (when Picking Mode active)
+- **Space**: Toggle focused row
+- **J / ArrowDown**: Next unchecked row
+- **K / ArrowUp**: Previous unchecked row
+- **Esc**: Exit Picking Mode
+
+### Progress at 100%
+1. Progress fill animates from brand gradient → green
+2. Counter text becomes italic and green
+3. **Optional**: Single-line sweep animation, --magenta flash, or no extra flourish (designer's call)
+
+### Group All Checked
+1. "done ✦" marker appears at group header right
+2. Header rule transitions to green
+3. Marker fades in over 300ms
+
+### Focus Row ("Now Picking")
+- **Left edge**: 3px cyan border
+- **Glow**: `box-shadow: inset 0 0 20px rgba(63, 197, 231, 0.1), 0 0 12px rgba(63, 197, 231, 0.15)`
+- **Background**: `rgba(63, 197, 231, 0.1)`
+- **Text**: Slightly brighter
+- **Auto-advance**: Focus moves to next unchecked row when current row is checked
+
+---
+
+## What NOT to Do
+
+1. ❌ Use rounded-2xl cards with 48px padding (generic SaaS feel)
+2. ❌ Single-hue purple gradient heroes
+3. ❌ Glassmorphism blur stacks
+4. ❌ Icon-plus-text rows that look mobile
+5. ❌ Use color outside its defined role (e.g., red for pending, green for warning)
+6. ❌ Mix fonts beyond Source Serif 4 + Space Mono
+7. ❌ Animate with spring physics or bounce easing
+8. ❌ Use Inter, Roboto, Poppins, Geist, or system-ui
+9. ❌ Add features that don't fit the aesthetic (too many icons, too much whitespace, etc.)
+10. ❌ Stray from the established palette — no custom accent colors per-section
+
+---
+
+## Implementation Checklist for Rounds 2–8
+
+- [ ] Import Source Serif 4 and Space Mono from Google Fonts
+- [ ] Define CSS variables for all color tokens
+- [ ] Implement ProgressStrip (if section has progress)
+- [ ] Implement Row primitive with all variants
+- [ ] Add PackHeader + group structure (if grouped)
+- [ ] Use Space Mono for all labels, counts, timestamps
+- [ ] Establish motion: 250ms state changes, 200ms hover, 500ms progress
+- [ ] Add keyboard hint strip if applicable
+- [ ] Test focus row treatment (luminous border + glow + auto-advance)
+- [ ] Verify all status colors map correctly to functional meaning
+- [ ] Proof: No colors used outside their defined role
+- [ ] Proof: All motion uses `cubic-bezier(0.22, 1, 0.36, 1)` and durations match chart
+
+---
+
+## Contact
+
+Design lock: Round 1, Pick List, established.
+Questions on primitives or atmospheric details? Refer to this doc and the `pick-list.tsx` + `pick-list.css` source of truth.
