@@ -576,6 +576,324 @@ body.picking-mode #pick-mode-btn {
   .step-header.collapsed #upload-chevron {
     transform: rotate(-90deg);
   }
+/* ── PICK LIST COMPONENT ── */
+
+/* Keyframe: quantity badge pulse */
+@keyframes qtyPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* Keyframe: stagger in rows */
+@keyframes staggerIn {
+  0% { transform: translateY(4px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Keyframe: group done tag fade in */
+@keyframes tagFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Main pick list container */
+.pick-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+}
+
+/* Header row */
+.pick-list-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+
+.pick-list-chevron {
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.pick-list-chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.pick-list-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.pick-list-summary {
+  font-size: 12px;
+  color: var(--muted);
+  flex: 1;
+}
+
+.pick-mode-btn {
+  padding: 6px 14px;
+  background: linear-gradient(135deg, var(--teal-accent), var(--accent));
+  border: none;
+  border-radius: 6px;
+  color: var(--bg);
+  font-weight: 600;
+  font-size: 11px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pick-mode-btn:hover {
+  opacity: 0.9;
+}
+
+/* Progress bar */
+.pick-progress-wrapper {
+  padding: 12px;
+  padding-bottom: 0;
+}
+
+.pick-progress-track {
+  width: 100%;
+  height: 5px;
+  background: var(--surface3);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.pick-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), #34d399);
+  transition: width 0.4s ease-out;
+  border-radius: 10px;
+}
+
+.pick-progress-fill.complete {
+  background: linear-gradient(90deg, #34d399, #10b981);
+}
+
+.pick-progress-text {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* List wrapper (collapsible) */
+.pick-list-wrapper {
+  max-height: 10000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.pick-list-wrapper.collapsed {
+  max-height: 0;
+}
+
+/* Groups */
+.pick-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 12px;
+  margin-bottom: 12px;
+}
+
+.pick-group:first-of-type {
+  padding-top: 12px;
+}
+
+.pick-group-header {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--teal-accent);
+  border-bottom: 1px solid rgba(63, 197, 231, 0.3);
+  padding-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pick-group-header.unmatched {
+  color: var(--yellow);
+  border-bottom-color: rgba(245, 158, 11, 0.3);
+}
+
+.pick-group-complete-tag {
+  font-size: 10px;
+  color: var(--green);
+  font-weight: 600;
+  opacity: 0;
+  animation: tagFadeIn 0.2s ease forwards;
+}
+
+/* Empty state */
+.pick-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  margin: 20px 12px;
+}
+
+/* Row */
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  animation: staggerIn 0.4s ease forwards;
+}
+
+.pick-row:nth-child(1) { animation-delay: 0ms; }
+.pick-row:nth-child(2) { animation-delay: 30ms; }
+.pick-row:nth-child(3) { animation-delay: 60ms; }
+.pick-row:nth-child(4) { animation-delay: 90ms; }
+.pick-row:nth-child(5) { animation-delay: 120ms; }
+.pick-row:nth-child(6) { animation-delay: 150ms; }
+.pick-row:nth-child(7) { animation-delay: 180ms; }
+.pick-row:nth-child(8) { animation-delay: 210ms; }
+.pick-row:nth-child(9) { animation-delay: 240ms; }
+.pick-row:nth-child(10) { animation-delay: 270ms; }
+.pick-row:nth-child(n+11) { animation-delay: 400ms; }
+
+.pick-row:hover {
+  border-color: rgba(92, 224, 208, 0.4);
+  background: var(--surface3);
+}
+
+.pick-row.short {
+  background: #3d2e00;
+  border-color: #7a5c00;
+  color: var(--yellow);
+}
+
+.pick-row.short:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: #4a3a00;
+}
+
+.pick-row.out {
+  background: #3d1515;
+  border-color: #7a2929;
+  color: var(--red);
+}
+
+.pick-row.out:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: #4a1919;
+}
+
+.pick-row.unmatched {
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.pick-row.checked {
+  opacity: 0.5;
+  transition: opacity 0.25s ease;
+}
+
+.pick-checkbox {
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--green);
+  width: 18px;
+  height: 18px;
+}
+
+.pick-checkbox:focus {
+  outline: 2px solid rgba(16, 185, 129, 0.4);
+  outline-offset: 2px;
+}
+
+.pick-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pick-color-name {
+  font-weight: 600;
+  flex: 1;
+}
+
+.pick-stock-line {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pick-row.short .pick-stock-line {
+  color: var(--yellow);
+}
+
+.pick-row.out .pick-stock-line {
+  color: var(--red);
+}
+
+.pick-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pick-badge.short {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--yellow);
+}
+
+.pick-badge.out {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--red);
+}
+
+.pick-badge.unmatched {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--yellow);
+}
+
+.pick-qty-badge {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--teal-accent);
+  background: rgba(63, 197, 231, 0.15);
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.pick-row.checked .pick-qty-badge {
+  animation: qtyPulse 0.25s ease;
+}
+
 </style>
 </head>
 <body>
@@ -668,11 +986,11 @@ body.picking-mode #pick-mode-btn {
    }
 
    const DEFAULT_COLORS = ['Black','White','Gray','Navy','Red','Royal Blue','Forest Green','Burgundy','Purple','Pink','Orange','Yellow','Brown','Tan','Teal','Coral'];
-   const DEFAULT_PACKS = ['2 Pack', '4 Pack', '4 Pack No Lanyard'];
+   const DEFAULT_PACKS = ['2pk', '4pk', '4pk NoLanyard'];
    const DEFAULT_SETTINGS = {
      carrierCloseTime:'17:00', travelMinutes:30,
      zoneNames:{primary:'Sort Zone 1', secondary:'Clerk Counter'},
-     lowThreshold:10, packOrder:['2 Pack', '4 Pack', '4 Pack No Lanyard'],
+     lowThreshold:10, packOrder:['2pk', '4pk', '4pk NoLanyard'],
      volume:80, proMode:false,
      variantAliases:{
        'metallic red':  'Metallic Red',
@@ -1201,6 +1519,8 @@ body.picking-mode #pick-mode-btn {
      if (!APP_STATE.variantsToPick) APP_STATE.variantsToPick = {};
      if (!APP_STATE.csvOrders) APP_STATE.csvOrders = [];
 
+     const seenBefore = new Set(APP_STATE.csvOrders.map(o => o.tracking));
+     const countBefore = seenBefore.size;
      for (let i = 1; i < lines.length; i++) {
        const cols = parseCSVLine(lines[i]);
        const t = trkCol >= 0 ? (cols[trkCol] || '').replace(/^420\d{5}/, '').trim() : '';
@@ -1209,19 +1529,17 @@ body.picking-mode #pick-mode-btn {
        if (v && v.length > 1 && v.length < 80) {
          APP_STATE.variantsToPick[v] = (APP_STATE.variantsToPick[v] || 0) + 1;
        }
-       if (t) APP_STATE.csvOrders.push({tracking: t, variant: v, orderDate: d});
+       if (t && !seenBefore.has(t)) {
+         APP_STATE.csvOrders.push({tracking: t, variant: v, orderDate: d});
+         seenBefore.add(t);
+       }
      }
+     const newOrderCount = seenBefore.size - countBefore;
 
-     // Store per-file metadata
-     const fileOrders = APP_STATE.csvOrders.filter(
-       o => !S.csvFiles.some(cf =>
-         cf.orders && cf.orders.some(fo => fo.tracking === o.tracking)
-       )
-     );
      if (!S.csvFiles) S.csvFiles = [];
      S.csvFiles.push({
        name: filename || 'manifest.csv',
-       orderCount: fileOrders.length,
+       orderCount: newOrderCount,
        savedAt: Date.now()
      });
 
@@ -1304,125 +1622,124 @@ body.picking-mode #pick-mode-btn {
     }
 
     let pack = null;
-    if (/no\s*la[yny]+r?d?/i.test(s) || /\(no\s/i.test(s) || /4[- ]?pack\s*\(no/i.test(s) || /\bnl\b/i.test(s)) {
-      pack = '4 Pack No Lanyard';
-    } else if (/\b4[\s\-]?p(k|ack)\b/i.test(s) || /\b4\s*-\s*\d/i.test(s)) {
-      pack = '4 Pack';
-    } else if (/\b2[\s\-]?p(k|ack)\b/i.test(s)) {
-      pack = '2 Pack';
+    const packNorm = str.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const isNoLanyard = packNorm.includes('nolanyard') ||
+                        packNorm.includes('nolaynyard') ||
+                        /\bnl\b/i.test(str);
+    if (isNoLanyard && (packNorm.includes('4pk') || packNorm.includes('4pack'))) {
+      pack = '4pk NoLanyard';
+    } else if (packNorm.includes('4pk') || packNorm.includes('4pack')) {
+      pack = '4pk';
+    } else if (packNorm.includes('2pk') || packNorm.includes('2pack')) {
+      pack = '2pk';
     }
 
     if (!color || !pack) return null;
     return { color, pack };
   }
 
-   function renderPickList() {
+function renderPickList() {
      const wrap = getEl('pick-groups');
      const sum = getEl('pick-list-summary');
      if (!wrap || !sum) return;
      if (!APP_STATE.csvLoaded) {
-       wrap.innerHTML = ''; sum.innerHTML = 'Upload a manifest CSV to see the pick list';
+       wrap.innerHTML = '';
+       sum.innerHTML = 'Upload a manifest CSV to see the pick list';
        return;
      }
-     let totalToPull=0, short=0, out=0;
+     let totalToPull = 0;
      const grouped = {};
-     Object.entries(APP_STATE.variantsToPick).forEach(([varStr, reqQty]) => {
-        totalToPull += reqQty;
-        const parsed = parseVariantString(varStr);
-        const inv = parsed
-          ? S.inventory.find(i =>
-              i.color === parsed.color && i.pack === parsed.pack)
-          : null;
-        const key = inv ? inv.color + '|' + inv.pack : varStr;
-        if (!grouped[key]) grouped[key] = {
-          varStr: inv ? inv.color : (parsed ? parsed.color + ' (' + parsed.pack + ')' : varStr),
-          reqQty: 0,
-          inv: inv,
-          key: key
-        };
-        grouped[key].reqQty += reqQty;
-      });
-     
-     // Sorting: OUT first, then SHORT, then DISPLAY ORDER
-     const sortedGroups = Object.values(grouped).sort((a,b) => {
-       const aOut = a.inv && a.inv.stock === 0 ? 1 : 0;
-       const bOut = b.inv && b.inv.stock === 0 ? 1 : 0;
-       if (bOut !== aOut) return bOut - aOut;
-       
-       const aShort = a.inv && a.reqQty > a.inv.stock && a.inv.stock > 0 ? 1 : 0;
-       const bShort = b.inv && b.reqQty > b.inv.stock && b.inv.stock > 0 ? 1 : 0;
-       if (bShort !== aShort) return bShort - aShort;
-       
-       const aColIdx = a.inv ? S.colorOrder.indexOf(a.inv.color) : 999;
-       const bColIdx = b.inv ? S.colorOrder.indexOf(b.inv.color) : 999;
-       if (aColIdx !== bColIdx) return aColIdx - bColIdx;
-       
-       const packOrder = (S.settings && S.settings.packOrder) || ['2 Pack', '4 Pack', '4 Pack No Lanyard'];
-       const aPackIdx = a.inv ? packOrder.indexOf(a.inv.pack) : 999;
-       const bPackIdx = b.inv ? packOrder.indexOf(b.inv.pack) : 999;
-       return aPackIdx - bPackIdx;
+     Object.entries(APP_STATE.variantsToPick || {}).forEach(([varStr, reqQty]) => {
+       totalToPull += reqQty;
+       const parsed = parseVariantString(varStr);
+       const inv = parsed ? S.inventory.find(function(i) {
+         return i.color === parsed.color && i.pack === parsed.pack;
+       }) : null;
+       const key = inv ? inv.color + '|' + inv.pack : varStr;
+       if (!grouped[key]) grouped[key] = {
+         color: inv ? inv.color : varStr,
+         pack: inv ? inv.pack : '',
+         reqQty: 0, inv: inv, key: key
+       };
+       grouped[key].reqQty += reqQty;
      });
-
-     let html = '';
-     let renderedUnmatchedHeader = false;
-
-     sortedGroups.forEach(g => {
-       const stKey = 'pick_chk_' + g.key.replace(/ /g,'_');
-       const isChecked = sessionStorage.getItem(stKey) === 'true';
-       const op = isChecked && !document.body.classList.contains('picking-mode') ? '0.5' : '1';
-
-       if (!g.inv) {
-         if (!renderedUnmatchedHeader) {
-           html += '<div style="margin-top:16px; margin-bottom:8px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--yellow);">UNMATCHED VARIANTS</div>';
-           renderedUnmatchedHeader = true;
-         }
-         
-         html += '<div style="background:var(--surface2);border:1px solid var(--border);padding:12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;opacity:'+op+';transition:opacity 0.2s;margin-bottom:8px;">';
-         html += '<label style="display:flex;align-items:center;gap:12px;cursor:pointer;flex:1">';
-         html += '<input type="checkbox" onchange="togglePickChk(this, \''+stKey+'\')" '+(isChecked?'checked':'')+' style="width:20px;height:20px;accent-color:var(--green)">';
-         html += '<div>';
-         html += '<div class="pick-name" style="color:var(--text);font-weight:700;margin-bottom:4px"><span style="color:#888">●</span> ' + g.varStr + '</div>';
-         html += '<div class="pick-stock" style="color:var(--muted)"></div>';
-         html += '</div></label>';
-         html += '<div style="display:flex; align-items:center; gap:12px;">';
-         html += '<span class="badge badge-yellow">NO MATCH</span>';
-         html += '<div class="pick-qty" style="background:var(--bg);padding:8px 16px;border-radius:6px;font-size:20px;font-weight:700;color:var(--green)">&times; ' + g.reqQty + '</div>';
-         html += '</div>';
-         html += '</div>';
-       } else {
-         const isOut = g.inv.stock === 0;
-         const isShort = g.reqQty > g.inv.stock && g.inv.stock > 0;
-         if(isOut) out++; if(isShort) short++;
-         
-         const cColor = isOut ? 'var(--red)' : isShort ? 'var(--yellow)' : 'var(--text)';
-         const bg = isOut ? '#3d1515' : isShort ? '#3d2e00' : 'var(--surface2)';
-         const brd = isOut ? '#7a2929' : isShort ? '#7a5c00' : 'var(--border)';
-         
-         let stockHtml = '';
-         if (isOut) {
-           stockHtml = 'Stock: 0 <span class="badge badge-red">OUT</span>';
-         } else if (isShort) {
-           stockHtml = 'Stock: ' + g.inv.stock + ' <span class="badge badge-yellow">SHORT</span>';
+     const packOrder = (S.settings && S.settings.packOrder) ||
+       ['2pk', '4pk', '4pk NoLanyard'];
+     const byPack = {};
+     Object.values(grouped).forEach(function(g) {
+       const p = g.inv ? g.inv.pack : '__UNMATCHED__';
+       if (!byPack[p]) byPack[p] = [];
+       byPack[p].push(g);
+     });
+     var COLOR_HEX_LOCAL = {
+       'Black':'#222','White':'#e5e5e5','Gray':'#9ca3af',
+       'Navy':'#1e3a5f','Red':'#ef4444','Royal Blue':'#2563eb',
+       'Forest Green':'#166534','Burgundy':'#7f1d1d',
+       'Purple':'#7c3aed','Pink':'#f472b6','Orange':'#f97316',
+       'Yellow':'#eab308','Brown':'#92400e','Tan':'#d97706',
+       'Teal':'#0d9488','Coral':'#f87171','Hot Pink':'#ec4899',
+       'Dark Blue':'#1e40af','Charcoal':'#4b5563','Blue':'#3b82f6',
+       'Green':'#16a34a','Gold':'#f59e0b','Metallic Red':'#dc2626'
+     };
+     var html = '';
+     var short = 0, out = 0;
+     var allPacks = packOrder.concat(['__UNMATCHED__']);
+     allPacks.forEach(function(pack) {
+       var items = byPack[pack];
+       if (!items || !items.length) return;
+       var isUnmatched = pack === '__UNMATCHED__';
+       var headerLabel = isUnmatched ? 'UNMATCHED VARIANTS' : pack.toUpperCase();
+       var headerColor = isUnmatched ? 'var(--yellow)' : '#3fc5e7';
+       html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:' + headerColor + ';padding:10px 0 6px;border-bottom:1px solid var(--border);margin-bottom:8px;margin-top:12px">' + headerLabel + '</div>';
+       items.sort(function(a, b) {
+         if (b.reqQty !== a.reqQty) return b.reqQty - a.reqQty;
+         var ai = S.colorOrder ? S.colorOrder.indexOf(a.color) : -1;
+         var bi = S.colorOrder ? S.colorOrder.indexOf(b.color) : -1;
+         return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+       });
+       items.forEach(function(g) {
+         var stKey = 'pick_' + g.key.replace(/[^a-zA-Z0-9]/g, '_');
+         var isChecked = sessionStorage.getItem(stKey) === 'true';
+         var op = isChecked ? '0.5' : '1';
+         var dotColor = COLOR_HEX_LOCAL[g.color] || '#888';
+         if (isUnmatched) {
+           html += '<div style="background:var(--surface2);border:1px solid var(--border);padding:10px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;opacity:' + op + ';margin-bottom:6px">';
+           html += '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1">';
+           html += '<input type="checkbox" onchange="togglePickChk(this,\'' + stKey + '\')" ' + (isChecked ? 'checked' : '') + ' style="width:18px;height:18px;accent-color:var(--green)">';
+           html += '<div style="width:12px;height:12px;border-radius:50%;background:#888;flex-shrink:0"></div>';
+           html += '<span style="font-weight:600">' + g.color + '</span>';
+           html += '</label>';
+           html += '<div style="display:flex;align-items:center;gap:10px">';
+           html += '<span class="badge badge-yellow">NO MATCH</span>';
+           html += '<div style="background:var(--bg);padding:6px 14px;border-radius:6px;font-size:18px;font-weight:700;color:var(--green)">&times;' + g.reqQty + '</div>';
+           html += '</div></div>';
          } else {
-           stockHtml = 'Stock: ' + g.inv.stock;
+           var isOut = g.inv && g.inv.stock === 0;
+           var isShort = g.inv && g.reqQty > g.inv.stock && g.inv.stock > 0;
+           if (isOut) out++;
+           if (isShort) short++;
+           var cColor = isOut ? 'var(--red)' : isShort ? 'var(--yellow)' : 'var(--text)';
+           var bg = isOut ? '#3d1515' : isShort ? '#3d2e00' : 'var(--surface2)';
+           var brd = isOut ? '#7a2929' : isShort ? '#7a5c00' : 'var(--border)';
+           var stockVal = g.inv ? g.inv.stock : 0;
+           var stockHtml = isOut ? 'stock: 0 <span class="badge badge-red">OUT</span>' : isShort ? 'stock: ' + stockVal + ' <span class="badge badge-yellow">SHORT</span>' : 'stock: ' + stockVal;
+           html += '<div style="background:' + bg + ';border:1px solid ' + brd + ';padding:10px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;opacity:' + op + ';transition:opacity 0.2s;margin-bottom:6px">';
+           html += '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1">';
+           html += '<input type="checkbox" onchange="togglePickChk(this,\'' + stKey + '\')" ' + (isChecked ? 'checked' : '') + ' style="width:18px;height:18px;accent-color:var(--green)">';
+           html += '<div style="width:12px;height:12px;border-radius:50%;flex-shrink:0;background:' + dotColor + ';border:1px solid rgba(255,255,255,0.15)"></div>';
+           html += '<div><div style="color:' + cColor + ';font-weight:700">' + g.color + '</div>';
+           html += '<div style="color:var(--muted);font-size:11px">' + stockHtml + '</div></div>';
+           html += '</label>';
+           html += '<div style="background:var(--bg);padding:6px 14px;border-radius:6px;font-size:18px;font-weight:700;color:var(--green)">&times;' + g.reqQty + '</div>';
+           html += '</div>';
          }
-         
-         html += '<div style="background:'+bg+';border:1px solid '+brd+';padding:12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;opacity:'+op+';transition:opacity 0.2s;margin-bottom:8px;">';
-         html += '<label style="display:flex;align-items:center;gap:12px;cursor:pointer;flex:1">';
-         html += '<input type="checkbox" onchange="togglePickChk(this, \''+stKey+'\')" '+(isChecked?'checked':'')+' style="width:20px;height:20px;accent-color:var(--green)">';
-         html += '<div>';
-         html += '<div class="pick-name" style="color:'+cColor+';font-weight:700;margin-bottom:4px">● ' + g.varStr + '</div>';
-         html += '<div class="pick-stock" style="color:var(--muted)">' + stockHtml + '</div>';
-         html += '</div></label>';
-         html += '<div class="pick-qty" style="background:var(--bg);padding:8px 16px;border-radius:6px;font-size:20px;font-weight:700">&times; ' + g.reqQty + '</div>';
-         html += '</div>';
-       }
+       });
      });
-     
-     wrap.innerHTML = html;
-     sum.innerHTML = 'To pull: <b>'+totalToPull+'</b> items &middot; ' +
-       (short ? '<b style="color:var(--yellow)">'+short+' SHORT</b>' : '0 SHORT') + ' &middot; ' +
-       (out ? '<b style="color:var(--red)">'+out+' OUT</b>' : '0 OUT');
+     wrap.innerHTML = html || '<div style="color:var(--muted);padding:12px">No variants to display</div>';
+     sum.innerHTML = 'To pull: <b>' + totalToPull + '</b> items &middot; ' +
+       (short ? '<b style="color:var(--yellow)">' + short + ' SHORT</b>' : '0 SHORT') +
+       ' &middot; ' +
+       (out ? '<b style="color:var(--red)">' + out + ' OUT</b>' : '0 OUT');
    }
 
    function togglePickMode() {
@@ -1616,20 +1933,20 @@ body.picking-mode #pick-mode-btn {
            
            // Group by type
            const labels = d.files.filter(f => f.type === 'labels');
-           const manifests = d.files.filter(f => f.type === 'manifests');
+           const manifests = d.files.filter(f => f.type === 'csv');
            const slips = d.files.filter(f => f.type === 'slips');
            
            // Labels section
            if (labels.length > 0) {
              html += '<div style="margin-top:8px">' +
-               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📄 Labels</div>';
+               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📄 Shipping Labels</div>';
              labels.forEach((f, idx) => {
                const sizeKb = (f.size / 1024).toFixed(0);
                const safePath = JSON.stringify(f.path);
                const safeName = JSON.stringify(f.name);
                html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;' +
                  'background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.15);margin-bottom:4px">' +
-                 '<input type="checkbox" id="file-label-' + dIdx + '-' + idx + '" style="cursor:pointer;accent-color:var(--accent)">' +
+                 '<input type="checkbox" id="file-label-' + dIdx + '-' + idx + '" data-path="' + f.path + '" data-name="' + f.name + '" style="cursor:pointer;accent-color:var(--accent)">' +
                  '<label for="file-label-' + dIdx + '-' + idx + '" style="flex:1;cursor:pointer;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
                  f.name + '</label>' +
                  '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
@@ -1642,34 +1959,34 @@ body.picking-mode #pick-mode-btn {
            // Manifests section
            if (manifests.length > 0) {
              html += '<div style="margin-top:12px">' +
-               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📋 Manifests</div>';
+               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📋 CSV</div>';
              manifests.forEach((f, idx) => {
                const sizeKb = (f.size / 1024).toFixed(0);
                const safePath = JSON.stringify(f.path);
                const safeName = JSON.stringify(f.name);
                html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;' +
                  'background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.15);margin-bottom:4px">' +
-                 '<input type="checkbox" id="file-manifest-' + dIdx + '-' + idx + '" style="cursor:pointer;accent-color:var(--accent)">' +
+                 '<input type="checkbox" id="file-manifest-' + dIdx + '-' + idx + '" data-path="' + f.path + '" data-name="' + f.name + '" style="cursor:pointer;accent-color:var(--accent)">' +
                  '<label for="file-manifest-' + dIdx + '-' + idx + '" style="flex:1;cursor:pointer;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
                  f.name + '</label>' +
                  '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
                  '</div>';
              });
              html += '<button class="btn" style="width:100%;padding:6px;font-size:11px;margin-top:6px" ' +
-               'onclick="loadGroupFiles(\'manifest-' + dIdx + '\',\'manifests\',' + dIdx + ')">Load Selected</button></div>';
+               'onclick="loadGroupFiles(\'manifest-' + dIdx + '\',\'csv\',' + dIdx + ')">Load Selected</button></div>';
            }
            
            // Slips section
            if (slips.length > 0) {
              html += '<div style="margin-top:12px">' +
-               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📦 USPS Slips</div>';
+               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📦 Manifest Slips</div>';
              slips.forEach((f, idx) => {
                const sizeKb = (f.size / 1024).toFixed(0);
                const safePath = JSON.stringify(f.path);
                const safeName = JSON.stringify(f.name);
                html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;' +
                  'background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.15);margin-bottom:4px">' +
-                 '<input type="checkbox" id="file-slip-' + dIdx + '-' + idx + '" style="cursor:pointer;accent-color:var(--accent)">' +
+                 '<input type="checkbox" id="file-slip-' + dIdx + '-' + idx + '" data-path="' + f.path + '" data-name="' + f.name + '" style="cursor:pointer;accent-color:var(--accent)">' +
                  '<label for="file-slip-' + dIdx + '-' + idx + '" style="flex:1;cursor:pointer;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
                  f.name + '</label>' +
                  '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
@@ -1711,32 +2028,22 @@ body.picking-mode #pick-mode-btn {
      showToast('Loading ' + filesToLoad.length + ' file(s)...', 'info');
    }
 
-   function loadAllToday(date) {
-     const allCheckboxes = document.querySelectorAll('.vault-files-0 input[type="checkbox"]');
-     allCheckboxes.forEach(cb => cb.checked = true);
-     const checkboxes = document.querySelectorAll('.vault-files-0 input[type="checkbox"]:checked');
+   async function loadAllToday(date) {
+     const checkboxes = document.querySelectorAll('.vault-files-0 input[type="checkbox"]');
+     if (!checkboxes.length) { showToast('No files found for today', 'warn'); return; }
      let count = 0;
-     checkboxes.forEach(cb => {
-       const label = cb.nextElementSibling.textContent.trim();
-       const parentDiv = cb.closest('div[style*="background"]');
-       if (parentDiv) {
-         const sizeSpan = parentDiv.querySelector('span[style*="white-space"]');
-         if (sizeSpan) {
-           const fakeEvent = {target: cb};
-           cb.parentElement.onclick = function() {
-             const checkId = this.querySelector('input').id;
-             if (checkId.includes('file-label')) loadGroupFiles('label-0', 'labels', 0);
-             else if (checkId.includes('file-manifest')) loadGroupFiles('manifest-0', 'manifests', 0);
-             else if (checkId.includes('file-slip')) loadGroupFiles('slip-0', 'slips', 0);
-           };
-           count++;
-         }
+     for (const cb of checkboxes) {
+       const filePath = cb.getAttribute('data-path');
+       const fileName = cb.getAttribute('data-name');
+       if (filePath && fileName) {
+         await loadVaultFile(filePath, fileName, true);
+         count++;
        }
-     });
-     showToast('Loading all files for ' + date + '...', 'success');
+     }
+     showToast('Loaded ' + count + ' file(s) for ' + date, 'success');
    }
 
-   async function loadVaultFile(path, name) {
+   async function loadVaultFile(path, name, silent = false) {
      getEl('vault-status').textContent = 'Loading ' + name + '...';
      try {
        const r = await fetch('/api/vault/file/' + encodeURIComponent(path).replace('%2F', '/'));
@@ -1747,9 +2054,9 @@ body.picking-mode #pick-mode-btn {
        const file = new File([buf], name, {type: mime});
        await handleFiles([file]);
        getEl('vault-status').textContent = name + ' loaded';
-       toggleVault();
+       if (!silent) toggleVault();
      } catch(e) {
-       getEl('vault-status').textContent = 'Failed to load file';
+       getEl('vault-status').textContent = 'Failed to load ' + name;
        console.error('loadVaultFile error:', e);
      }
    }
@@ -2620,44 +2927,49 @@ body.picking-mode #pick-mode-btn {
          ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0),0)
          : 0;
        checks += '<div class="pill"><span>📄 Labels Loaded</span>' +
-         '<span class="badge badge-green">' + labelTrackings + ' trackings</span></div>';
+         '<span class="badge badge-green">' + labelTrackings + ' total</span></div>';
+       if (S.labelFiles) {
+         S.labelFiles.forEach(lf => {
+           checks += '<div class="pill" style="margin-left:16px;opacity:0.8">' +
+             '<span style="font-size:11px">\u21b3 ' + lf.name + '</span>' +
+             '<span class="badge badge-green" style="font-size:10px">' +
+             (lf.trackings ? lf.trackings.length : 0) + '</span></div>';
+         });
+       }
      }
 
-     // CSV pills — one per file
+     // CSV pills
      if (APP_STATE.csvLoaded && S.csvFiles && S.csvFiles.length) {
        const totalOrders = S.csvFiles.reduce((a,cf)=>a+cf.orderCount,0);
        checks += '<div class="pill"><span>📋 Manifest CSV' +
          (S.csvFiles.length > 1 ? 's (' + S.csvFiles.length + ' files)' : ' Loaded') +
-         '</span>' +
+         '</span><span class="badge badge-green">' + totalOrders + ' total</span>' +
          '<span id="sla-pill-badge" class="badge hidden"></span></div>';
-       if (S.csvFiles.length > 1) {
-         S.csvFiles.forEach(cf => {
-           checks += '<div class="pill" style="margin-left:16px;opacity:0.8">' +
-             '<span style="font-size:11px">↳ ' + cf.name + '</span>' +
-             '<span class="badge badge-green" style="font-size:10px">' +
-             cf.orderCount + ' orders</span></div>';
-         });
-       }
+       S.csvFiles.forEach(cf => {
+         checks += '<div class="pill" style="margin-left:16px;opacity:0.8">' +
+           '<span style="font-size:11px">\u21b3 ' + cf.name + '</span>' +
+           '<span class="badge badge-green" style="font-size:10px">' + cf.orderCount + '</span></div>';
+       });
      } else if (APP_STATE.csvLoaded) {
        const csvCount = APP_STATE.csvOrders ? APP_STATE.csvOrders.length : 0;
        checks += '<div class="pill"><span>📋 Manifest CSV Loaded</span>' +
-         '<span class="badge badge-green">' + csvCount + ' orders</span>' +
+         '<span class="badge badge-green">' + csvCount + ' total</span>' +
          '<span id="sla-pill-badge" class="badge hidden"></span></div>';
      }
 
-     // USPS Slips pill
+     // Manifest Slips pill
      if (APP_STATE.slipsLoaded && S.uspsSlips && S.uspsSlips.length) {
        const totalPkgs = S.uspsSlips.reduce((a,s)=>a+(s.packageCount||0),0);
-       checks += '<div class="pill"><span>📦 USPS Slips (' +
+       checks += '<div class="pill"><span>📦 Manifest Slips (' +
          S.uspsSlips.length + ' files)</span>' +
          '<span class="badge badge-green">' +
-         (totalPkgs > 0 ? totalPkgs + ' packages' : S.uspsSlips.length + ' slips') +
+         (totalPkgs > 0 ? totalPkgs + ' total' : S.uspsSlips.length + ' slips') +
          '</span></div>';
        S.uspsSlips.forEach(slip => {
          checks += '<div class="pill" style="margin-left:16px;opacity:0.8">' +
-           '<span style="font-size:11px">↳ ' + slip.name + '</span>' +
+           '<span style="font-size:11px">\u21b3 ' + slip.name + '</span>' +
            (slip.packageCount ? '<span class="badge badge-green" style="font-size:10px">' +
-             slip.packageCount + ' pkgs</span>' : '') +
+             slip.packageCount + '</span>' : '') +
            '</div>';
        });
      }
@@ -2854,6 +3166,31 @@ body.picking-mode #pick-mode-btn {
        <button class="btn btn-accent" style="width:100%; margin-top:16px; padding:12px;" onclick="closeSettingsModal()">Save & Close</button>
      </div>
    </div>
+   
+   <!-- PICK LIST COMPONENT -->
+   <div id="pick-list-container" class="pick-list-container" style="margin: 20px 12px;">
+     <!-- Header -->
+     <div class="pick-list-header">
+       <span class="pick-list-chevron" onclick="togglePickList()">▼</span>
+       <span class="pick-list-title">Pick List</span>
+       <span class="pick-list-summary" id="pick-summary">To pull: 41 items · 0 SHORT · 0 OUT</span>
+       <button class="pick-mode-btn" onclick="togglePickingMode()">Picking Mode</button>
+     </div>
+     
+     <!-- Progress Bar -->
+     <div class="pick-progress-wrapper">
+       <div class="pick-progress-track">
+         <div class="pick-progress-fill" id="pick-progress-fill" style="width: 0%"></div>
+       </div>
+       <div class="pick-progress-text" id="pick-progress-text">0 of 41 picked · 0%</div>
+     </div>
+     
+     <!-- List Wrapper -->
+     <div class="pick-list-wrapper" id="pick-list-wrapper">
+       <div id="pick-list-content"></div>
+     </div>
+   </div>
+   
    <div id="celebration-overlay">
      <div style="font-size:48px">🎉</div>
      <div id="celebration-text">Batch Shipped!</div>
@@ -2861,5 +3198,183 @@ body.picking-mode #pick-mode-btn {
        Great work — packages are on their way
      </div>
    </div>
-</body>
-</html>
+   
+   <script>
+     // ── PICK LIST RENDERER ──
+     
+     const SAMPLE_GROUPS = [
+       {
+         packName: "2pk",
+         items: [
+           {color: "Black", colorHex: "#222", reqQty: 8, stock: 15, status: "ok", checkKey: "pick_Black_2pk"},
+           {color: "Red", colorHex: "#dc2626", reqQty: 5, stock: 3, status: "short", checkKey: "pick_Red_2pk"},
+           {color: "Blue", colorHex: "#2563eb", reqQty: 2, stock: 10, status: "ok", checkKey: "pick_Blue_2pk"}
+         ]
+       },
+       {
+         packName: "4pk",
+         items: [
+           {color: "Green", colorHex: "#059669", reqQty: 12, stock: 20, status: "ok", checkKey: "pick_Green_4pk"},
+           {color: "Navy", colorHex: "#1e40af", reqQty: 7, stock: 0, status: "out", checkKey: "pick_Navy_4pk"},
+           {color: "Purple", colorHex: "#7c3aed", reqQty: 4, stock: 8, status: "ok", checkKey: "pick_Purple_4pk"},
+           {color: "Gold", colorHex: "#d97706", reqQty: 1, stock: 5, status: "ok", checkKey: "pick_Gold_4pk"}
+         ]
+       },
+       {
+         packName: "UNMATCHED",
+         items: [
+           {color: "Charcoal", colorHex: null, reqQty: 3, stock: 0, status: "unmatched", checkKey: "pick_Charcoal_unmatched"},
+           {color: "Coral", colorHex: null, reqQty: 1, stock: 0, status: "unmatched", checkKey: "pick_Coral_unmatched"}
+         ]
+       }
+     ];
+     
+     let pickListState = {};
+     
+     function initPickList(groups = SAMPLE_GROUPS) {
+       groups.forEach(group => {
+         group.items.forEach(item => {
+           pickListState[item.checkKey] = false;
+         });
+       });
+       renderPickList(groups);
+     }
+     
+     function renderPickList(groups = SAMPLE_GROUPS) {
+       const content = document.getElementById('pick-list-content');
+       let html = '';
+       let totalItems = 0;
+       let shortCount = 0;
+       let outCount = 0;
+       
+       groups.forEach(group => {
+         const isUnmatched = group.packName === "UNMATCHED";
+         const headerClass = isUnmatched ? 'unmatched' : '';
+         const headerText = isUnmatched ? 'UNMATCHED VARIANTS' : group.packName.toUpperCase();
+         
+         const allCheckedInGroup = group.items.every(item => pickListState[item.checkKey]);
+         
+         html += `<div class="pick-group">
+           <div class="pick-group-header ${headerClass}">
+             ${headerText}
+             ${allCheckedInGroup && group.items.length > 0 ? '<span class="pick-group-complete-tag">✓ done</span>' : ''}
+           </div>`;
+         
+         group.items.forEach((item, idx) => {
+           totalItems += item.reqQty;
+           if (item.status === 'short') shortCount++;
+           if (item.status === 'out') outCount++;
+           
+           const isChecked = pickListState[item.checkKey];
+           const rowClass = `pick-row ${item.status}${isChecked ? ' checked' : ''}`;
+           const dotHtml = item.colorHex 
+             ? `<div class="pick-color-dot" style="background: ${item.colorHex}"></div>`
+             : `<div class="pick-color-dot" style="background: #666"></div>`;
+           
+           let badge = '';
+           if (item.status === 'short') badge = '<span class="pick-badge short">SHORT</span>';
+           else if (item.status === 'out') badge = '<span class="pick-badge out">OUT</span>';
+           else if (item.status === 'unmatched') badge = '<span class="pick-badge unmatched">NO MATCH</span>';
+           
+           html += `<div class="${rowClass}" onclick="togglePickRow(this, '${item.checkKey}')">
+             <input type="checkbox" class="pick-checkbox" ${isChecked ? 'checked' : ''} onchange="event.stopPropagation();">
+             ${dotHtml}
+             <div>
+               <div class="pick-color-name">${item.color}</div>
+               <div class="pick-stock-line">stock: ${item.stock}</div>
+             </div>
+             ${badge}
+             <span class="pick-qty-badge">×${item.reqQty}</span>
+           </div>`;
+         });
+         
+         html += '</div>';
+       });
+       
+       content.innerHTML = html || '<div class="pick-empty-state">Upload a manifest CSV to see the pick list</div>';
+       
+       // Update summary
+       document.getElementById('pick-summary').textContent = `To pull: ${totalItems} items · ${shortCount} SHORT · ${outCount} OUT`;
+       
+       updateProgressBar(groups);
+       attachPickRowListeners(groups);
+     }
+     
+     function togglePickRow(rowEl, checkKey) {
+       const checkbox = rowEl.querySelector('.pick-checkbox');
+       checkbox.checked = !checkbox.checked;
+       pickListState[checkKey] = checkbox.checked;
+       rowEl.classList.toggle('checked');
+       
+       if (checkbox.checked) {
+         rowEl.classList.add('checked');
+       } else {
+         rowEl.classList.remove('checked');
+       }
+       
+       updateProgressBar(SAMPLE_GROUPS);
+     }
+     
+     function updateProgressBar(groups = SAMPLE_GROUPS) {
+       let totalQty = 0;
+       let pickedQty = 0;
+       
+       groups.forEach(group => {
+         group.items.forEach(item => {
+           totalQty += item.reqQty;
+           if (pickListState[item.checkKey]) {
+             pickedQty += item.reqQty;
+           }
+         });
+       });
+       
+       const percentage = totalQty > 0 ? Math.round((pickedQty / totalQty) * 100) : 0;
+       const fill = document.getElementById('pick-progress-fill');
+       const text = document.getElementById('pick-progress-text');
+       
+       fill.style.width = percentage + '%';
+       
+       if (percentage === 100) {
+         fill.classList.add('complete');
+         text.textContent = 'All picked ✓';
+         text.style.color = 'var(--green)';
+       } else {
+         fill.classList.remove('complete');
+         text.textContent = `${pickedQty} of ${totalQty} picked · ${percentage}%`;
+         text.style.color = 'var(--muted)';
+       }
+     }
+     
+     function attachPickRowListeners(groups = SAMPLE_GROUPS) {
+       const rows = document.querySelectorAll('.pick-row');
+       rows.forEach(row => {
+         row.addEventListener('click', function(e) {
+           if (e.target.tagName !== 'INPUT') {
+             const checkbox = this.querySelector('.pick-checkbox');
+             checkbox.click();
+           }
+         });
+       });
+     }
+     
+     function togglePickList() {
+       const wrapper = document.getElementById('pick-list-wrapper');
+       const chevron = document.querySelector('.pick-list-chevron');
+       wrapper.classList.toggle('collapsed');
+       chevron.classList.toggle('collapsed');
+     }
+     
+     function togglePickingMode() {
+       document.body.classList.toggle('picking-mode');
+       const btn = document.querySelector('.pick-mode-btn');
+       if (btn) {
+         btn.textContent = document.body.classList.contains('picking-mode') ? 'Exit Picking Mode' : 'Picking Mode';
+       }
+     }
+     
+     // Initialize on load
+     document.addEventListener('DOMContentLoaded', function() {
+       initPickList(SAMPLE_GROUPS);
+     });
+   </script>
+
