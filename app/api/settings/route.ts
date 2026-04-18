@@ -21,14 +21,24 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  return updateSettings(request)
+}
+
+export async function PUT(request: Request) {
+  return updateSettings(request)
+}
+
+async function updateSettings(request: Request) {
   try {
     const updates = await request.json()
     
     // Get existing settings first
-    const existing = await db.select().from(settings).limit(1)
+    let existing = await db.select().from(settings).limit(1)
     
+    // If no settings exist, create them first
     if (existing.length === 0) {
-      return NextResponse.json({ error: 'Settings not found' }, { status: 404 })
+      const newSettings = await db.insert(settings).values({}).returning()
+      existing = newSettings
     }
     
     // Map camelCase to snake_case

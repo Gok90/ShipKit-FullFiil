@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { Package, Clock, Printer, Truck, CheckCircle2 } from "lucide-react"
+import { Package, Clock, Printer, Truck, CheckCircle2, AlertCircle, Loader2 } from "lucide-react"
 import type { Settings } from "@/lib/types"
 
 interface SetupWizardProps {
-  onComplete: (settings: Partial<Settings>) => void
+  open: boolean
+  onComplete: () => void
 }
 
 const STEPS = [
@@ -22,8 +23,10 @@ const STEPS = [
   { id: 5, title: "Complete", icon: CheckCircle2 },
 ]
 
-export function SetupWizard({ onComplete }: SetupWizardProps) {
+export function SetupWizard({ open, onComplete }: SetupWizardProps) {
   const [step, setStep] = useState(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [settings, setSettings] = useState<Partial<Settings>>({
     storeName: "",
     primaryZoneName: "Manifest",
@@ -34,16 +37,39 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
     travelTimeMinutes: 15,
     printerFormat: "thermal_4x6",
   })
+  
+  if (!open) return null
 
   const updateSettings = (updates: Partial<Settings>) => {
     setSettings((prev) => ({ ...prev, ...updates }))
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    setError(null)
+    
     if (step < 5) {
       setStep(step + 1)
     } else {
-      onComplete({ ...settings, setupComplete: true })
+      // Save settings to database
+      setIsSubmitting(true)
+      try {
+        const response = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...settings, setupComplete: true })
+        })
+        if (response.ok) {
+          onComplete()
+        } else {
+          const data = await response.json().catch(() => ({}))
+          setError(data.error || `Failed to save (HTTP ${response.status})`)
+        }
+      } catch (err) {
+        console.error('Failed to save settings:', err)
+        setError('Network error. Please check your connection and try again.')
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -267,20 +293,32 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
               </div>
             )}
 
+            {/* Error Display */}
+            {error && (
+              <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-4 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">Something went wrong</p>
+                  <p className="text-sm opacity-90">{error}</p>
+                </div>
+              </div>
+            )}
+
             {/* Navigation */}
             <div className="flex justify-between pt-4">
               <Button
                 variant="ghost"
                 onClick={handleBack}
-                disabled={step === 1}
+                disabled={step === 1 || isSubmitting}
               >
                 Back
               </Button>
               <Button
                 onClick={handleNext}
-                disabled={!canProceed()}
+                disabled={!canProceed() || isSubmitting}
               >
-                {step === 5 ? "Start Using ShipKit" : "Continue"}
+                {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isSubmitting ? "Saving..." : step === 5 ? "Start Using ShipKit" : "Continue"}
               </Button>
             </div>
           </CardContent>

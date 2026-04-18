@@ -1,53 +1,11 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import useSWR, { mutate } from 'swr'
-import { useShipKit } from '@/lib/shipkit-context'
-import { FileUploadStep } from './file-upload-step'
-import { PrintLabelsStep } from './print-labels-step'
-import { PickListStep } from './pick-list-step'
-import { ScanPackagesStep } from './scan-packages-step'
-import { ShipArchiveStep } from './ship-archive-step'
-import { DispatchBanner } from './dispatch-banner'
-import { DailyProgress } from './daily-progress'
-import type { UploadedFile, CsvOrder, Scan, ManifestZone, BatchSummary } from '@/lib/types'
-
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+import { FulfillmentDashboard } from './fulfillment-dashboard'
 
 export function ScanTab() {
-  const { settings, activeBatch, refreshBatch } = useShipKit()
-  
-  // Fetch data from API
-  const { data: filesData, mutate: mutateFiles } = useSWR(
-    activeBatch?.id ? `/api/batch/files?batchId=${activeBatch.id}` : null,
-    fetcher
-  )
-  
-  const { data: ordersData, mutate: mutateOrders } = useSWR(
-    activeBatch?.id ? `/api/batch/orders?batchId=${activeBatch.id}` : null,
-    fetcher
-  )
-  
-  const { data: scansData, mutate: mutateScans } = useSWR(
-    activeBatch?.id ? `/api/batch/scan?batchId=${activeBatch.id}` : null,
-    fetcher
-  )
-  
-  // Local state for UI
-  const [committedBatches, setCommittedBatches] = useState<BatchSummary[]>([])
-  const [todayShipped, setTodayShipped] = useState(0)
-  const [todayPending, setTodayPending] = useState(0)
-  
-  const uploadedFiles: UploadedFile[] = filesData?.files || []
-  const manifestZones: ManifestZone[] = filesData?.zones || []
-  const csvOrders: CsvOrder[] = ordersData?.orders || []
-  const scans: Scan[] = scansData?.scans || []
-  const clerkCount: number = scansData?.clerkCount || 0
-  
-  // Handle file uploads via API
-  const handleFilesUploaded = useCallback(async (files: File[]) => {
-    if (!activeBatch?.id) {
-      // Create a new batch first
+  return <FulfillmentDashboard />
+}
+
       const batchRes = await fetch('/api/batch/active', { method: 'POST' })
       const newBatch = await batchRes.json()
       await refreshBatch()

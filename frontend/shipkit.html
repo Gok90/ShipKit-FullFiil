@@ -1,0 +1,3380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShipKit — PRINTZ&GIGGLEZ</title>
+    <!-- PDF.js for text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #0f0a1a;
+  --surface: #1a1230;
+  --surface2: #2d1f42;
+  --surface3: #3d2d52;
+  --border: #5a4a7a;
+  --accent: #5ce0d0;
+  --secondary: #a78bfa;
+  --teal-accent: #3fc5e7;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --text: #ffffff;
+  --muted: #b8a7d0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+.monospace { font-family: 'JetBrains Mono', monospace; }
+
+/* ── Navigation ── */
+#nav {
+  display: flex;
+  align-items: center;
+  background: rgba(15, 10, 26, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 8px;
+  gap: 2px;
+  overflow-x: auto;
+}
+
+#nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  flex-shrink: 0;
+}
+
+#nav-brand-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  flex-shrink: 0;
+}
+
+#nav-brand-text {
+  font-size: 15px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-btn {
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nav-btn:hover { color: var(--text); }
+
+.nav-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+#nav-settings-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 8px 10px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+#nav-settings-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Layout ── */
+#tab-content { padding: 20px; max-width: 960px; margin: 0 auto; }
+.hidden { display: none !important; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.justify-between { justify-content: space-between; }
+.align-center { align-items: center; }
+
+/* ── Cards ── */
+.card {
+  background: rgba(45, 31, 66, 0.45);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+
+/* ── Buttons ── */
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface3);
+}
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-green {
+  background: linear-gradient(135deg, var(--green), #059669);
+  border: none;
+  color: #fff;
+}
+
+.btn-green:hover:not(:disabled) {
+  opacity: 0.9;
+  background: linear-gradient(135deg, var(--green), #059669);
+}
+
+.btn-red {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  border: none;
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.btn-accent:hover:not(:disabled) { opacity: 0.9; }
+
+.btn-teal {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  border: none;
+  color: var(--bg);
+  font-weight: 600;
+}
+
+.btn-teal:hover:not(:disabled) { opacity: 0.9; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-red { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.badge-yellow { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+.badge-green { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+.badge-amber { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+
+/* ── Forms ── */
+input[type=text], input[type=number], input[type=time], select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 7px 10px;
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus { border-color: var(--accent); }
+
+/* ── Modals ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  min-width: 320px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ── Steps (Scan Tab) ── */
+.step {
+  background: rgba(45, 31, 66, 0.45);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(61, 45, 82, 0.5);
+  cursor: pointer;
+  user-select: none;
+}
+
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface3);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.step.active .step-num {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  color: var(--bg);
+}
+
+.step-body { padding: 16px; border-top: 1px solid var(--border); }
+.step.disabled { opacity: 0.4; pointer-events: none; }
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Drop Zone ── */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 32px;
+  text-align: center;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(45, 31, 66, 0.3);
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(92, 224, 208, 0.05);
+  color: var(--accent);
+}
+
+/* ── Pill ── */
+.pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(61, 45, 82, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-top: 8px;
+  transition: border-color 0.2s;
+}
+
+/* ── Pile cards (scan zone counters) ── */
+.pile-card {
+  flex: 1;
+  background: rgba(45, 31, 66, 0.5);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.pile-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(92, 224, 208, 0.15);
+}
+
+.pile-card.complete {
+  border-color: var(--green);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+/* ── Inventory Table ── */
+.inv-table { width: 100%; border-collapse: collapse; }
+.inv-group-header { background: rgba(61, 45, 82, 0.5); border-bottom: 1px solid var(--border); cursor: grab; }
+.inv-group-header td { padding: 8px 12px; font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+.inv-row td { padding: 8px 12px; border-bottom: 1px solid rgba(90, 74, 122, 0.3); }
+.inv-row:hover td { background: rgba(45, 31, 66, 0.4); }
+.drag-handle { color: var(--muted); cursor: grab; padding-right: 8px; user-select: none; }
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.qty-btn:hover { border-color: var(--accent); background: var(--surface3); }
+.stock-num { display: inline-block; min-width: 40px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; cursor: text; font-family: 'JetBrains Mono', monospace; }
+
+/* ── Color swatch ── */
+.color-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+/* ── Hold Panel & Batch Cards ── */
+.hold-panel {
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.05);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.batch-card {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: rgba(61, 45, 82, 0.4);
+}
+
+/* ── Attention items ── */
+.attention-out {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 3px solid var(--red);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+.attention-short {
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 3px solid var(--yellow);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+}
+
+/* ── Toast notifications ── */
+#toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 220px;
+  animation: toastIn 0.25s ease;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+.toast.success { border-color: rgba(16,185,129,0.5); color: #6ee7b7; }
+.toast.error   { border-color: rgba(239,68,68,0.5); color: #fca5a5; }
+.toast.warn    { border-color: rgba(245,158,11,0.5); color: #fcd34d; }
+
+@keyframes toastIn {
+  from { transform: translateX(40px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+/* ── Scanner input hidden ── */
+#scan-input { position: absolute; opacity: 0; pointer-events: none; }
+
+/* ── Vault ── */
+#vault-panel {
+  display: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(45, 31, 66, 0.4);
+  padding: 12px;
+  margin-top: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+#vault-panel.open { display: block; }
+
+.vault-date-header {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 0 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+}
+
+.vault-date-header:first-child { border-top: none; margin-top: 0; }
+
+.vault-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+
+.vault-file-row:hover { background: rgba(90, 74, 122, 0.4); }
+
+/* ── Picking mode ── */
+body.picking-mode #pick-list-sec {
+  position: fixed; inset: 0; z-index: 400;
+  background: var(--bg); overflow-y: auto;
+  padding: 20px; border-radius: 0; margin: 0;
+}
+body.picking-mode #pick-groups .pick-name { font-size: 20px; }
+body.picking-mode #pick-groups .pick-qty  { font-size: 24px; font-weight: 700; color: var(--accent); }
+body.picking-mode #pick-groups .pick-stock { font-size: 15px; }
+body.picking-mode #pick-mode-btn {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  color: var(--bg); border: none;
+}
+
+/* ── Urgency states ── */
+.urgency-green { color: var(--green); }
+.urgency-yellow { color: var(--yellow); }
+.urgency-red { color: var(--red); }
+
+/* ── btn-active (scan log tabs) ── */
+.btn-active {
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  border: none;
+  color: var(--bg);
+  font-weight: 600;
+}
+
+@keyframes celebrationFlash {
+  0%   { opacity: 0; transform: scale(0.95); }
+  20%  { opacity: 1; transform: scale(1.02); }
+  80%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
+#celebration-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: linear-gradient(135deg,
+    rgba(92,224,208,0.15), rgba(167,139,250,0.15));
+  pointer-events: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#celebration-overlay.active {
+  display: flex;
+  animation: celebrationFlash 2.5s ease forwards;
+}
+
+#celebration-text {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+}
+
+/* Teal accent on step window outlines and titles */
+.step { border-color: rgba(63, 197, 231, 0.25); }
+.step:hover { border-color: rgba(63, 197, 231, 0.5); }
+.step-header b { color: #3fc5e7; }
+#pick-list-sec { border-color: rgba(63, 197, 231, 0.25); }
+#pick-list-sec:hover { border-color: rgba(63, 197, 231, 0.5); }
+#pick-list-sec .pick-title { color: #3fc5e7; }
+
+.step-header.collapsed #print-chevron,
+.step-header.collapsed #slips-chevron {
+  transform: rotate(-90deg);
+}
+  #upload-chevron { display: inline-block; }
+  .step-header.collapsed #upload-chevron {
+    transform: rotate(-90deg);
+  }
+/* ── PICK LIST COMPONENT ── */
+
+/* Keyframe: quantity badge pulse */
+@keyframes qtyPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* Keyframe: stagger in rows */
+@keyframes staggerIn {
+  0% { transform: translateY(4px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Keyframe: group done tag fade in */
+@keyframes tagFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Main pick list container */
+.pick-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+}
+
+/* Header row */
+.pick-list-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+
+.pick-list-chevron {
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.pick-list-chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.pick-list-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.pick-list-summary {
+  font-size: 12px;
+  color: var(--muted);
+  flex: 1;
+}
+
+.pick-mode-btn {
+  padding: 6px 14px;
+  background: linear-gradient(135deg, var(--teal-accent), var(--accent));
+  border: none;
+  border-radius: 6px;
+  color: var(--bg);
+  font-weight: 600;
+  font-size: 11px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pick-mode-btn:hover {
+  opacity: 0.9;
+}
+
+/* Progress bar */
+.pick-progress-wrapper {
+  padding: 12px;
+  padding-bottom: 0;
+}
+
+.pick-progress-track {
+  width: 100%;
+  height: 5px;
+  background: var(--surface3);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.pick-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), #34d399);
+  transition: width 0.4s ease-out;
+  border-radius: 10px;
+}
+
+.pick-progress-fill.complete {
+  background: linear-gradient(90deg, #34d399, #10b981);
+}
+
+.pick-progress-text {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* List wrapper (collapsible) */
+.pick-list-wrapper {
+  max-height: 10000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.pick-list-wrapper.collapsed {
+  max-height: 0;
+}
+
+/* Groups */
+.pick-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 12px;
+  margin-bottom: 12px;
+}
+
+.pick-group:first-of-type {
+  padding-top: 12px;
+}
+
+.pick-group-header {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--teal-accent);
+  border-bottom: 1px solid rgba(63, 197, 231, 0.3);
+  padding-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pick-group-header.unmatched {
+  color: var(--yellow);
+  border-bottom-color: rgba(245, 158, 11, 0.3);
+}
+
+.pick-group-complete-tag {
+  font-size: 10px;
+  color: var(--green);
+  font-weight: 600;
+  opacity: 0;
+  animation: tagFadeIn 0.2s ease forwards;
+}
+
+/* Empty state */
+.pick-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  margin: 20px 12px;
+}
+
+/* Row */
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  animation: staggerIn 0.4s ease forwards;
+}
+
+.pick-row:nth-child(1) { animation-delay: 0ms; }
+.pick-row:nth-child(2) { animation-delay: 30ms; }
+.pick-row:nth-child(3) { animation-delay: 60ms; }
+.pick-row:nth-child(4) { animation-delay: 90ms; }
+.pick-row:nth-child(5) { animation-delay: 120ms; }
+.pick-row:nth-child(6) { animation-delay: 150ms; }
+.pick-row:nth-child(7) { animation-delay: 180ms; }
+.pick-row:nth-child(8) { animation-delay: 210ms; }
+.pick-row:nth-child(9) { animation-delay: 240ms; }
+.pick-row:nth-child(10) { animation-delay: 270ms; }
+.pick-row:nth-child(n+11) { animation-delay: 400ms; }
+
+.pick-row:hover {
+  border-color: rgba(92, 224, 208, 0.4);
+  background: var(--surface3);
+}
+
+.pick-row.short {
+  background: #3d2e00;
+  border-color: #7a5c00;
+  color: var(--yellow);
+}
+
+.pick-row.short:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: #4a3a00;
+}
+
+.pick-row.out {
+  background: #3d1515;
+  border-color: #7a2929;
+  color: var(--red);
+}
+
+.pick-row.out:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: #4a1919;
+}
+
+.pick-row.unmatched {
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.pick-row.checked {
+  opacity: 0.5;
+  transition: opacity 0.25s ease;
+}
+
+.pick-checkbox {
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--green);
+  width: 18px;
+  height: 18px;
+}
+
+.pick-checkbox:focus {
+  outline: 2px solid rgba(16, 185, 129, 0.4);
+  outline-offset: 2px;
+}
+
+.pick-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pick-color-name {
+  font-weight: 600;
+  flex: 1;
+}
+
+.pick-stock-line {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pick-row.short .pick-stock-line {
+  color: var(--yellow);
+}
+
+.pick-row.out .pick-stock-line {
+  color: var(--red);
+}
+
+.pick-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pick-badge.short {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--yellow);
+}
+
+.pick-badge.out {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--red);
+}
+
+.pick-badge.unmatched {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--yellow);
+}
+
+.pick-qty-badge {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--teal-accent);
+  background: rgba(63, 197, 231, 0.15);
+  padding: 6px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.pick-row.checked .pick-qty-badge {
+  animation: qtyPulse 0.25s ease;
+}
+
+</style>
+</head>
+<body>
+   <div id="nav">
+     <div id="nav-brand">
+       <div id="nav-brand-icon"></div>
+       <span id="nav-brand-text">ShipKit</span>
+     </div>
+     <span id="offline-badge"
+       style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;
+       background:rgba(16,185,129,0.15);color:#6ee7b7;
+       border:1px solid rgba(16,185,129,0.3);letter-spacing:0.5px;
+       flex-shrink:0;display:none">
+       OFFLINE
+     </span>
+     <button class="nav-btn active" onclick="switchTab('scan')">SCAN</button>
+     <button class="nav-btn" onclick="switchTab('inventory')">
+       INVENTORY <span id="inv-badge" class="badge badge-red hidden">!</span>
+     </button>
+     <button class="nav-btn" onclick="switchTab('history')">HISTORY</button>
+     <button class="nav-btn" onclick="switchTab('analytics')">ANALYTICS</button>
+     <button class="nav-btn" onclick="switchTab('reorder')">REORDER</button>
+     <button class="nav-btn" onclick="switchTab('finance')">FINANCE</button>
+     <button id="nav-settings-btn" onclick="openSettings()">&#9881;</button>
+   </div>
+   <div id="tab-content"></div>
+   <div id="toast-container"></div>
+
+   <script>
+   // PDF.js worker config
+   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+   // --- GLOBALS & API LAYER ---
+   const S = {
+     inventory: [], colorOrder: [], batches: [], held: [],
+     sessions: [], shippedT: new Set(), settings: {}, todayDelta: {}, returns: [],
+     labelFiles: [], csvFiles: [], csvOrders: [], uspsSlips: [], session: {},
+     printedFileNames: new Set(), slipPrintedNames: new Set()
+   };
+
+   // API layer — replaces IndexedDB, reads/writes real files via Python server
+   const API = {
+     async get(key) {
+       try {
+         const r = await fetch('/api/data/' + key);
+         if (!r.ok) return null;
+         return await r.json();
+       } catch { return null; }
+     },
+     async set(key, value) {
+       try {
+         await fetch('/api/data/' + key, {
+           method: 'POST',
+           headers: {'Content-Type': 'application/json'},
+           body: JSON.stringify(value)
+         });
+       } catch(e) { console.error('API.set failed:', key, e); }
+     },
+     async uploadFile(file) {
+       try {
+         const fd = new FormData();
+         fd.append('file', file);
+         const r = await fetch('/api/upload', {method:'POST', body:fd});
+         return await r.json();
+       } catch(e) { console.error('API.uploadFile failed:', e); return null; }
+     },
+     async getFile(filename) {
+       try {
+         const r = await fetch('/api/file/' + encodeURIComponent(filename));
+         if (!r.ok) return null;
+         return await r.arrayBuffer();
+       } catch { return null; }
+     }
+   };
+
+   async function saveS(key) {
+     const keyMap = {
+       inventory: 'inventory',
+       colorOrder: 'color_order',
+       batches: 'batches',
+       held: 'held',
+       sessions: 'sessions',
+       settings: 'settings',
+       todayDelta: 'today_delta',
+       returns: 'returns',
+       shippedT: 'shipped_trackings'
+     };
+     const val = key === 'shippedT' ? [...S.shippedT] : S[key];
+     await API.set(keyMap[key] || key, val);
+   }
+
+   const DEFAULT_COLORS = ['Black','White','Gray','Navy','Red','Royal Blue','Forest Green','Burgundy','Purple','Pink','Orange','Yellow','Brown','Tan','Teal','Coral'];
+   const DEFAULT_PACKS = ['2pk', '4pk', '4pk NoLanyard'];
+   const DEFAULT_SETTINGS = {
+     carrierCloseTime:'17:00', travelMinutes:30,
+     zoneNames:{primary:'Sort Zone 1', secondary:'Clerk Counter'},
+     lowThreshold:10, packOrder:['2pk', '4pk', '4pk NoLanyard'],
+     volume:80, proMode:false,
+     variantAliases:{
+       'metallic red':  'Metallic Red',
+       'dark blue':     'Dark Blue',
+       'hot pink':      'Hot Pink',
+       'royal blue':    'Royal Blue',
+       'charcoal':      'Charcoal',
+       'dark gray':     'Charcoal',
+       'dark grey':     'Charcoal',
+       'forest green':  'Forest Green',
+       'electric blue': 'Blue',
+       'navy blue':     'Navy',
+       'metallic gold': 'Gold'
+     }
+   };
+
+   // --- UTILS ---
+   const normT = t => t.replace(/^420\d{5}/, '').trim();
+   const getEl = id => document.getElementById(id);
+
+   function showToast(msg, type) {
+     const t = document.createElement('div');
+     t.className = 'toast' + (type ? ' ' + type : '');
+     t.textContent = msg;
+     const c = document.getElementById('toast-container');
+     if (c) c.appendChild(t);
+     setTimeout(() => {
+       t.style.opacity = '0';
+       t.style.transition = 'opacity 0.3s';
+       setTimeout(() => t.remove(), 300);
+     }, 3500);
+   }
+   
+   function showCelebration(label) {
+     const el = document.getElementById('celebration-overlay');
+     const txt = document.getElementById('celebration-text');
+     if (txt) txt.textContent = label || 'Batch Shipped!';
+     if (el) {
+       el.classList.add('active');
+       setTimeout(() => el.classList.remove('active'), 2500);
+     }
+   }
+   
+   function setPrinter(type) {
+     S.settings.printerFormat = type;
+     const btn4 = document.getElementById('printer-4x6-btn');
+     const btn8 = document.getElementById('printer-8x11-btn');
+     if (btn4) btn4.style.background =
+       type === '4x6'
+         ? 'linear-gradient(135deg,var(--accent),var(--secondary))'
+         : '';
+     if (btn8) btn8.style.background =
+       type === '8x11'
+         ? 'linear-gradient(135deg,var(--accent),var(--secondary))'
+         : '';
+     saveS('settings');
+     showToast('Printer format saved', 'success');
+   }
+   
+   // --- VARIANT ALIAS FUNCTIONS ---
+   function renderAliasPills() {
+     // AG will implement
+     const container = document.getElementById('alias-pills-container');
+     if (!container) return;
+     const aliases = S.settings.variantAliases || {};
+     const keys = Object.keys(aliases);
+     if (keys.length === 0) {
+       container.innerHTML = '<span style="font-size:12px;color:var(--muted);font-style:italic">No aliases yet — add one below</span>';
+       return;
+     }
+     container.innerHTML = keys.map(tikTok => {
+       const inv = aliases[tikTok];
+       return `<div style="display:inline-flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.25);border-radius:8px;">
+         <span style="color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace">${tikTok}</span>
+         <span style="color:var(--accent)">→</span>
+         <span style="color:var(--text);font-weight:600;font-size:12px">${inv}</span>
+         <button onclick="deleteAlias('${tikTok}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0 2px;font-size:14px;transition:color 0.2s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">&times;</button>
+       </div>`;
+     }).join('');
+   }
+
+   function addAlias() {
+     // AG will implement
+     const tikTokInput = document.getElementById('alias-tiktok-input');
+     const colorSelect = document.getElementById('alias-color-select');
+     if (!tikTokInput || !colorSelect) return;
+     const tikTok = tikTokInput.value.trim().toLowerCase();
+     const color = colorSelect.value;
+     if (!tikTok || !color) {
+       showToast('Enter TikTok name and select a color', 'warn');
+       return;
+     }
+     if (!S.settings.variantAliases) S.settings.variantAliases = {};
+     S.settings.variantAliases[tikTok] = color;
+     saveS('settings');
+     tikTokInput.value = '';
+     colorSelect.value = '';
+     renderAliasPills();
+     showToast('Alias added: ' + tikTok + ' → ' + color, 'success');
+   }
+
+   function deleteAlias(tikTokName) {
+     // AG will implement
+     if (!S.settings.variantAliases) return;
+     delete S.settings.variantAliases[tikTokName];
+     saveS('settings');
+     renderAliasPills();
+     showToast('Alias removed', 'success');
+   }
+
+   function populateAliasColorSelect() {
+     // AG will implement
+     const select = document.getElementById('alias-color-select');
+     if (!select) return;
+     const colors = S.colorOrder.length ? S.colorOrder : DEFAULT_COLORS;
+     select.innerHTML = '<option value="">Select color...</option>' +
+       colors.map(c => '<option value="' + c + '">' + c + '</option>').join('');
+   }
+   
+   function speak(text) {
+     if (!S.settings.volume) return;
+     const u = new SpeechSynthesisUtterance(text);
+     u.volume = S.settings.volume / 100;
+     window.speechSynthesis.speak(u);
+   }
+   
+   function beep(type = 'ok') {
+     if (!S.settings.volume) return;
+     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+     const osc = ctx.createOscillator();
+     const gain = ctx.createGain();
+     osc.connect(gain); gain.connect(ctx.destination);
+     osc.type = type === 'error' ? 'sawtooth' : 'sine';
+     osc.frequency.value = type === 'error' ? 200 : (type === 'done' ? 600 : 400);
+     gain.gain.setValueAtTime(S.settings.volume / 100, ctx.currentTime);
+     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+     osc.start(); osc.stop(ctx.currentTime + 0.3);
+   }
+
+   // --- RENDERERS ---
+   function renderScanTab() {
+     return `
+       <!-- Step 1: Upload Files -->
+       <div class="step active" id="step-upload-card">
+         <div class="step-header" onclick="getEl('upload-body').classList.toggle('hidden'); this.classList.toggle('collapsed')">
+           <span id="upload-chevron" style="color:#3fc5e7;font-size:11px;margin-right:4px;transition:transform 0.2s">▼</span>
+           <div class="step-num">1</div><b style="font-size:16px;flex:1">Upload Files</b>
+           <span id="upload-status-badge" class="badge hidden"></span>
+         </div>
+         <div class="step-body" id="upload-body">
+           <div class="drop-zone" id="drop-zone" onclick="getEl('file-input').click()" ondragover="event.preventDefault(); this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+             <i>Drag & Drop PDF Labels, CSV Manifests, and USPS Slips here</i><br>
+             <span style="font-size:12px;opacity:0.7">(Auto-detects file type)</span>
+           </div>
+           <input type="file" id="file-input" class="hidden" multiple accept=".pdf,.csv" onchange="handleFiles(event.target.files)">
+           
+           <div id="file-checklists" class="flex flex-col gap-2" style="margin-top:16px"></div>
+           <!-- Vault button row -->
+           <div class="flex" style="gap:8px;margin-top:10px">
+             <button class="btn" id="vault-toggle-btn"
+               onclick="toggleVault()">&#128193; Browse Vault</button>
+             <span id="vault-status"
+               style="font-size:12px;color:var(--muted);align-self:center"></span>
+           </div>
+           <!-- Vault panel -->
+           <div id="vault-panel"></div>
+           <div id="recon-banner" style="margin-top:12px"></div>
+           <div class="flex justify-between" style="margin-top:12px">
+             <button class="btn btn-red hidden" id="clear-scans-btn" onclick="clearFilesAndScans()">Clear Files & Scans</button>
+           </div>
+         </div>
+       </div>
+
+       <!-- Step 2: Print Labels -->
+       <div class="step active" id="step-print-card">
+         <div class="step-header" onclick="getEl('print-body').classList.toggle('hidden');this.classList.toggle('collapsed')">
+           <span id="print-chevron" style="color:#3fc5e7;font-size:11px;margin-right:4px;transition:transform 0.2s">▼</span>
+           <div class="step-num">2</div>
+           <b style="font-size:16px;flex:1">Print Labels & Packing Slips</b>
+           <span id="print-badge" class="badge hidden"></span>
+         </div>
+         <div class="step-body" id="print-body">
+           <div id="print-list" class="flex flex-col gap-2"><i>Upload labels to see them here</i></div>
+         </div>
+       </div>
+
+       <!-- Pick List [NEW DYNAMIC] -->
+       <div class="card hidden" id="pick-list-sec">
+         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer" onclick="togglePickList()">
+           <span id="pick-list-chevron" style="color:#3fc5e7;font-size:13px;transition:transform 0.2s;display:inline-block">▼</span>
+           <b class="pick-title" style="font-size:15px;flex:1">Pick List</b>
+           <span id="pick-list-summary" style="font-size:11px;color:var(--muted)"></span>
+           <span id="pick-header-counter" style="font-size:12px;color:var(--muted);display:none"></span>
+           <button class="btn" id="pick-mode-btn" style="padding:4px 12px;font-size:12px" onclick="event.stopPropagation();togglePickingMode()">Picking Mode</button>
+         </div>
+         <div id="pick-list-wrap">
+           <div id="pick-groups" style="display:grid;gap:8px"></div>
+         </div>
+       </div>
+
+       <!-- Step 3: Scan Packages -->
+       <div class="step disabled" id="step-scan-card">
+         <div class="step-header">
+           <div class="step-num">3</div><b style="font-size:16px;flex:1">Scan Packages</b>
+           <span id="sla-countdown" class="badge hidden"></span>
+         </div>
+         <div class="step-body">
+           <div class="flex gap-4 align-center" style="margin-bottom:16px">
+             <button class="btn btn-accent" id="arm-scanner-btn" onclick="armScanner()">Arm Scanner</button>
+             <span id="scan-progress-text">0/0 sorted</span>
+             <span id="daily-progress-text"
+               style="font-size:11px;color:var(--muted);margin-left:8px"></span>
+           </div>
+           <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+             <span id="batch-start-label" style="font-size:11px;color:var(--muted)"></span>
+           </div>
+           <div id="deadline-banner" style="display:none;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:13px;font-weight:500"></div>
+           <div id="pile-cards" class="flex gap-4" style="flex-wrap:wrap;margin-bottom:16px"></div>
+           <input type="text" id="scan-input" onkeydown="if(event.key==='Enter') handleScan(this.value)">
+           <div style="margin-top:16px">
+             <div style="display:flex;gap:8px;margin-bottom:8px">
+               <button id="log-tab-variant" class="btn btn-active" onclick="setLogView('variant')" style="padding:4px 10px;font-size:12px">Variant</button>
+               <button id="log-tab-tracking" class="btn" onclick="setLogView('tracking')" style="padding:4px 10px;font-size:12px">Tracking</button>
+               <button id="log-tab-product" class="btn" onclick="setLogView('product')" style="padding:4px 10px;font-size:12px">Product</button>
+               <button class="btn" onclick="exportScans()" style="padding:4px 10px;font-size:12px;margin-left:auto">⬇ Export</button>
+             </div>
+             <div id="scan-log" style="max-height:200px;overflow-y:auto;font-size:12px;color:var(--muted)"></div>
+           </div>
+         </div>
+       </div>
+
+       <!-- Step 4: Print USPS Slips -->
+       <div class="step" id="step-slips-card">
+         <div class="step-header" onclick="getEl('slips-body').classList.toggle('hidden');this.classList.toggle('collapsed')">
+           <span id="slips-chevron" style="color:#3fc5e7;font-size:11px;margin-right:4px;transition:transform 0.2s">▼</span>
+           <div class="step-num">4</div>
+           <b style="font-size:16px;flex:1">Print USPS Slips</b>
+           <span id="slips-badge" class="badge hidden"></span>
+         </div>
+         <div class="step-body" id="slips-body">
+           <div id="slips-list" class="flex flex-col gap-2"><i style="color:var(--muted)">No USPS slips uploaded yet</i></div>
+         </div>
+       </div>
+
+       <!-- Step 5: Ship & Archive -->
+       <div class="step active" id="step-archive-card">
+         <div class="step-header">
+           <div class="step-num">5</div><b style="font-size:16px;flex:1">Ship & Archive</b>
+         </div>
+         <div class="step-body">
+           <button id="smart-ship-btn" class="btn" style="width:100%; padding: 12px; font-size:15px;" disabled onclick="handleSmartShip()">Ship & Save</button>
+           
+           <div id="hold-subpanel" class="hold-panel" style="margin-top:16px">
+             <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer" onclick="toggleHoldPanel()">
+               <span style="color:var(--yellow);font-weight:700">&#9208; HOLD</span>
+               <span id="hold-count-badge" class="badge badge-yellow" style="display:none">0</span>
+               <span style="flex:1"></span>
+               <button class="btn" id="hold-clear-btn" style="padding:3px 8px;font-size:11px;display:none" onclick="event.stopPropagation();clearHolds()">Clear Hold</button>
+               <button class="btn" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();logCancellationNew()">+ Log Cancellation</button>
+               <span id="hold-chevron" style="color:var(--muted);font-size:14px;margin-left:4px">v</span>
+             </div>
+             <div id="hold-list-wrap">
+               <div id="hold-list"><i style="color:var(--muted)">No packages on hold</i></div>
+             </div>
+           </div>
+
+           <div id="batch-cards" style="margin-top:16px"></div>
+         </div>
+       </div>
+     `;
+   }
+
+   function renderInvTab() {
+     return `
+       <div class="flex justify-between align-center" style="margin-bottom:16px; font-size:13px; color:var(--muted)">
+         <span id="inv-stats-bar">Total Units: 0 &middot; SKUs In Stock: 0 &middot; Low Stock: 0 &middot; Out of Stock: 0</span>
+         <div class="flex gap-2" style="align-items:center">
+            <input type="number" id="bulk-qty-input" min="0" placeholder="qty"
+              style="width:64px;padding:6px 8px;font-size:13px;
+              background:var(--surface2);border:1px solid var(--border);
+              border-radius:8px;color:var(--text);text-align:center"
+              onkeydown="if(event.key==='Enter')applyToAll()">
+            <button class="btn" onclick="applyToAll()">Apply to All</button>
+            <button class="btn" onclick="applyToSelected()">Apply to Selected</button>
+         </div>
+       </div>
+       <div class="card" style="padding:0; overflow:hidden;">
+         <table class="inv-table" id="inv-table"></table>
+       </div>
+     `;
+   }
+
+   function renderHistoryTab() {
+     let proUI = '';
+     if (S.settings.proMode) {
+       proUI = `
+       <div class="step" style="margin-top:32px">
+         <div class="step-header" onclick="getEl('dispute-body').classList.toggle('hidden')">
+           <b style="font-size:15px">📋 Dispute Templates</b>
+         </div>
+         <div class="step-body hidden" id="dispute-body">
+           <input type="text" id="dispute-tracking-input" placeholder="Paste Tracking Number here..." oninput="updateTemplates(this.value)" style="margin-bottom:12px">
+           <div class="flex gap-4">
+             <div class="card" style="flex:1">
+               <b>Item Not Received (INR)</b><br>
+               <textarea id="tpl-inr" style="width:100%; height:100px; margin-top:8px; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:8px" readonly></textarea>
+               <button class="btn" style="margin-top:8px; width:100%" onclick="copyTpl('inr')">📋 Copy</button>
+             </div>
+             <div class="card" style="flex:1">
+               <b>Item Not As Described (INAD)</b><br>
+               <textarea id="tpl-inad" style="width:100%; height:100px; margin-top:8px; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:8px" readonly></textarea>
+               <button class="btn" style="margin-top:8px; width:100%" onclick="copyTpl('inad')">📋 Copy</button>
+             </div>
+           </div>
+         </div>
+       </div>
+
+       <div class="step">
+         <div class="step-header" onclick="getEl('returns-body').classList.toggle('hidden')">
+           <b style="font-size:15px">🔄 Returns Analytics Log</b>
+         </div>
+         <div class="step-body hidden" id="returns-body">
+           <form onsubmit="logReturn(event)" class="card" style="margin-bottom:16px">
+              <div class="flex gap-4" style="margin-bottom:12px">
+                 <input type="text" id="ret-order" placeholder="Order ID / Tracking" required style="flex:1">
+                 <input type="text" id="ret-sku" placeholder="SKU / Variant" required style="flex:1">
+              </div>
+              <div class="flex gap-4" style="margin-bottom:12px">
+                 <select id="ret-reason" style="flex:1">
+                   <option value="not_received">Not Received (INR)</option>
+                   <option value="defective">Defective / Damaged</option>
+                   <option value="wrong_item">Wrong Item Sent</option>
+                   <option value="buyer_remorse">Buyer Remorse</option>
+                 </select>
+                 <select id="ret-res" style="flex:1">
+                   <option value="refunded">Refunded</option>
+                   <option value="replaced">Replacement Sent</option>
+                   <option value="disputed">Disputed / Won</option>
+                 </select>
+              </div>
+              <div class="flex gap-4 align-center">
+                 <input type="number" id="ret-loss" placeholder="Est. Loss $" step="0.01" style="flex:1">
+                 <button type="submit" class="btn btn-teal" style="flex:1">Log Return</button>
+              </div>
+           </form>
+           <div id="returns-list"></div>
+         </div>
+       </div>
+       `;
+     } else {
+       proUI = `
+       <div class="step" style="margin-top:32px; opacity:0.6; text-align:center">
+         <i>Upgrade to Pro via Settings to unlock Dispute Templates & Returns Analytics</i>
+       </div>
+       `;
+     }
+
+     return `
+       <div id="history-feed"></div>
+       ${proUI}
+     `;
+   }
+
+   // --- TAB ROUTING ---
+   function switchTab(name) {
+     document.querySelectorAll('.nav-btn').forEach((b,i) => {
+       b.classList.toggle('active', ['scan','inventory','history','analytics','reorder','finance'][i] === name);
+     });
+     const tc = getEl('tab-content');
+     if (name === 'scan') tc.innerHTML = renderScanTab();
+     else if (name === 'inventory') tc.innerHTML = renderInvTab();
+     else if (name === 'history') tc.innerHTML = renderHistoryTab();
+     else if (name === 'analytics') tc.innerHTML = renderAnalyticsTab();
+     else if (name === 'reorder') tc.innerHTML = renderReorderTab();
+     else if (name === 'finance') tc.innerHTML = renderFinanceTab();
+     postRender(name);
+   }
+
+   function renderAnalyticsTab() {
+     return '<div class="card" style="text-align:center;padding:48px;color:var(--muted)">' +
+       '<div style="font-size:32px;margin-bottom:12px">&#128202;</div>' +
+       '<div style="font-size:16px;font-weight:600">Analytics</div>' +
+       '<div style="font-size:13px;margin-top:8px">Coming soon</div></div>';
+   }
+
+   function renderReorderTab() {
+     return '<div class="card" style="text-align:center;padding:48px;color:var(--muted)">' +
+       '<div style="font-size:32px;margin-bottom:12px">&#128260;</div>' +
+       '<div style="font-size:16px;font-weight:600">Reorder Planning</div>' +
+       '<div style="font-size:13px;margin-top:8px">Coming soon</div></div>';
+   }
+
+   function renderFinanceTab() {
+     return '<div class="card" style="text-align:center;padding:48px;color:var(--muted)">' +
+       '<div style="font-size:32px;margin-bottom:12px">&#128176;</div>' +
+       '<div style="font-size:16px;font-weight:600">Finance</div>' +
+       '<div style="font-size:13px;margin-top:8px">Coming soon</div></div>';
+   }
+
+   function postRender(name) { 
+     if (name === 'scan') updateScanUI();
+     if (name === 'inventory') renderInvTable();
+     if (name === 'history') {
+       renderHistoryFeed();
+       if (S.settings.proMode) updateReturnsUI();
+     }
+   }
+
+   // --- SCAN TAB LOGIC & STATE ---
+   const APP_STATE = {
+     trackingsToScan: new Set(),
+     variantsToPick: {}, 
+     scanned: [],
+     csvLoaded: false,
+     labelsLoaded: false,
+     slipsLoaded: false
+   };
+
+   let batchStartTime = null;
+   let deadlineInterval = null;
+
+   async function handleFiles(files) {
+     for (const f of files) {
+       const buf = await f.arrayBuffer();
+       const lowerName = f.name.toLowerCase();
+
+       if (lowerName.endsWith('.csv')) {
+         const txt = new TextDecoder().decode(buf);
+         parseCSV(txt, f.name);
+         API.uploadFile(f);
+         APP_STATE.csvLoaded = true;
+         updateScanUI();
+
+       } else if (lowerName.endsWith('.pdf')) {
+         const isSlip = !lowerName.includes('label') &&
+           (lowerName.startsWith('wsos') ||
+            lowerName.includes('manifest') ||
+            lowerName.includes('form') ||
+            lowerName.includes('slip'));
+
+         if (isSlip) {
+           const bufCopy = buf.slice(0);
+           if (!S.uspsSlips) S.uspsSlips = [];
+           
+           // Extract package count from slip PDF text
+           let slipPackageCount = 0;
+           try {
+             const slipPdf = await pdfjsLib.getDocument({data: buf.slice(0)}).promise;
+             let slipText = '';
+             for (let p = 1; p <= slipPdf.numPages; p++) {
+               const pg = await slipPdf.getPage(p);
+               const tc = await pg.getTextContent();
+               slipText += tc.items.map(i => i.str).join(' ');
+             }
+             // Match "USPS Ground Advantage  5" or "Total  34" patterns
+             const gaMatch = slipText.match(/Ground Advantage[™\s]+(\d+)/i);
+             const totalMatch = slipText.match(/Total\s+(\d+)/i);
+             if (gaMatch) slipPackageCount = parseInt(gaMatch[1]);
+             else if (totalMatch) slipPackageCount = parseInt(totalMatch[1]);
+           } catch(e) { slipPackageCount = 0; }
+
+           S.uspsSlips.push({
+             name: f.name,
+             data: bufCopy,
+             packageCount: slipPackageCount,
+             savedAt: Date.now()
+           });
+           
+           API.uploadFile(f);
+           APP_STATE.slipsLoaded = true;
+           // Unhide slip print section
+           const slipCard = document.getElementById('step-slips-card');
+           if (slipCard) slipCard.classList.remove('hidden');
+           updateSlipPrintSection();
+           updateScanUI();
+         } else {
+           const bufCopy = buf.slice(0);
+           API.uploadFile(f);
+           const trackings = await extractPDFTrackings(buf);
+           if (!S.labelFiles) S.labelFiles = [];
+           S.labelFiles.push({name: f.name, trackings, data: bufCopy, savedAt: Date.now()});
+           APP_STATE.labelsLoaded = true;
+           updatePrintSection();
+           updateScanUI();
+         }
+       }
+     }
+     updateScanUI();
+   }
+
+   function parseCSV(csvText, filename) {
+     const lines = csvText.split('\n').map(l => l.trim()).filter(l => l);
+     if (lines.length < 2) return;
+
+     // Handle quoted CSV properly
+     function parseCSVLine(line) {
+       const cols = [];
+       let cur = '', inQ = false;
+       for (let i = 0; i < line.length; i++) {
+         const ch = line[i];
+         if (ch === '"' && !inQ) { inQ = true; }
+         else if (ch === '"' && inQ && line[i+1] === '"') { cur += '"'; i++; }
+         else if (ch === '"' && inQ) { inQ = false; }
+         else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+         else { cur += ch; }
+       }
+       cols.push(cur.trim());
+       return cols;
+     }
+
+     const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim());
+
+     // Tracking column — TikTok uses "tracking number" or "order/tracking number"
+     let trkCol = headers.findIndex(h => h.includes('tracking'));
+     // Variant column — TikTok uses "sku name", "variation", "product name"
+     let varCol = headers.findIndex(h => h.includes('variation') || h.includes('variant'));
+     if (varCol < 0) varCol = headers.findIndex(h => h.includes('sku'));
+     if (varCol < 0) varCol = headers.findIndex(h => h.includes('product'));
+     // Date column
+     let dateCol = headers.findIndex(h => h.includes('time') || (h.includes('order') && h.includes('date')));
+
+     // Debug: log detected columns to console
+     console.log('[ShipKit CSV] headers:', headers);
+     console.log('[ShipKit CSV] tracking col:', trkCol, '| variant col:', varCol, '| date col:', dateCol);
+
+     if (!APP_STATE.variantsToPick) APP_STATE.variantsToPick = {};
+     if (!APP_STATE.csvOrders) APP_STATE.csvOrders = [];
+
+     const seenBefore = new Set(APP_STATE.csvOrders.map(o => o.tracking));
+     const countBefore = seenBefore.size;
+     for (let i = 1; i < lines.length; i++) {
+       const cols = parseCSVLine(lines[i]);
+       const t = trkCol >= 0 ? (cols[trkCol] || '').replace(/^420\d{5}/, '').trim() : '';
+       const v = varCol >= 0 ? (cols[varCol] || '').trim() : '';
+       const d = dateCol >= 0 ? (cols[dateCol] || '') : '';
+       if (v && v.length > 1 && v.length < 80) {
+         APP_STATE.variantsToPick[v] = (APP_STATE.variantsToPick[v] || 0) + 1;
+       }
+       if (t && !seenBefore.has(t)) {
+         APP_STATE.csvOrders.push({tracking: t, variant: v, orderDate: d});
+         seenBefore.add(t);
+       }
+     }
+     const newOrderCount = seenBefore.size - countBefore;
+
+     if (!S.csvFiles) S.csvFiles = [];
+     S.csvFiles.push({
+       name: filename || 'manifest.csv',
+       orderCount: newOrderCount,
+       savedAt: Date.now()
+     });
+
+     if (!APP_STATE.trackingsToScan) APP_STATE.trackingsToScan = new Set();
+     APP_STATE.csvOrders.forEach(o => { if (o.tracking) APP_STATE.trackingsToScan.add(o.tracking); });
+
+     console.log('[ShipKit CSV] variants to pick:', APP_STATE.variantsToPick);
+     console.log('[ShipKit CSV] trackings to scan:', APP_STATE.trackingsToScan.size);
+
+     startBatchTimer();
+   }
+
+   async function extractPDFTrackings(buf) {
+     const trackingsList = [];
+     const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+     // USPS tracking regex (generic, e.g., 92, 93, 94 prefixes, removing 420+ZIP)
+     const trackingRegex = /\b9\d{21}\b/g;
+     
+     for (let i = 1; i <= pdf.numPages; i++) {
+       const page = await pdf.getPage(i);
+       const textReq = await page.getTextContent();
+       let text = textReq.items.map(s => s.str).join(' ');
+        text = text.replace(/420\\s*\\d{5}/g, '');
+        const matches = text.match(trackingRegex) || [];
+       for (const m of matches) {
+         APP_STATE.trackingsToScan.add(m);
+         trackingsList.push(m);
+       }
+     }
+     // Cross-reference checking
+     let alreadyShipped = 0;
+     for (let t of APP_STATE.trackingsToScan) {
+       if (S.shippedT.has(t)) {
+         alreadyShipped++;
+         APP_STATE.trackingsToScan.delete(t);
+       }
+      }
+      if (alreadyShipped > 0) {
+        getEl('recon-banner').innerHTML = `<div class="badge badge-red" style="padding:4px 8px; font-size:12px; display:block">⚠ ${alreadyShipped} trackings already shipped and removed from expected count.</div>`;
+      }
+      return trackingsList;
+    }
+
+  function parseVariantString(str) {
+    if (!str) return null;
+    const s = str.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const sLow = s.toLowerCase();
+
+    const settingsAliases = (S && S.settings && 
+      S.settings.variantAliases) ? S.settings.variantAliases : {};
+    const ALIASES = Object.assign({
+      'metallic red':  'Metallic Red',
+      'dark blue':     'Dark Blue',
+      'hot pink':      'Hot Pink',
+      'royal blue':    'Royal Blue',
+      'charcoal':      'Charcoal',
+      'dark gray':     'Charcoal',
+      'dark grey':     'Charcoal',
+      'forest green':  'Forest Green',
+      'electric blue': 'Blue',
+      'navy blue':     'Navy',
+      'metallic gold': 'Gold'
+    }, settingsAliases);
+
+    const COLORS = [
+      'Metallic Red','Dark Blue','Hot Pink','Forest Green',
+      'Royal Blue','Burgundy','Charcoal','Purple','Orange',
+      'Coral','Black','White','Gray','Navy','Pink','Red',
+      'Yellow','Brown','Gold','Teal','Blue','Green','Tan'
+    ];
+
+    let color = null;
+    for (const [alias, canonical] of Object.entries(ALIASES)) {
+      if (sLow.includes(alias)) { color = canonical; break; }
+    }
+    if (!color) {
+      for (const c of COLORS) {
+        if (sLow.includes(c.toLowerCase())) { color = c; break; }
+      }
+    }
+
+    let pack = null;
+    const packNorm = str.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const isNoLanyard = packNorm.includes('nolanyard') ||
+                        packNorm.includes('nolaynyard') ||
+                        /\bnl\b/i.test(str);
+    if (isNoLanyard && (packNorm.includes('4pk') || packNorm.includes('4pack'))) {
+      pack = '4pk NoLanyard';
+    } else if (packNorm.includes('4pk') || packNorm.includes('4pack')) {
+      pack = '4pk';
+    } else if (packNorm.includes('2pk') || packNorm.includes('2pack')) {
+      pack = '2pk';
+    }
+
+    if (!color || !pack) return null;
+    return { color, pack };
+  }
+
+function renderPickList() {
+     const wrap = getEl('pick-groups');
+     const sum = getEl('pick-list-summary');
+     if (!wrap || !sum) return;
+     if (!APP_STATE.csvLoaded) {
+       wrap.innerHTML = '';
+       sum.innerHTML = 'Upload a manifest CSV to see the pick list';
+       return;
+     }
+     let totalToPull = 0;
+     const grouped = {};
+     Object.entries(APP_STATE.variantsToPick || {}).forEach(([varStr, reqQty]) => {
+       totalToPull += reqQty;
+       const parsed = parseVariantString(varStr);
+       const inv = parsed ? S.inventory.find(function(i) {
+         return i.color === parsed.color && i.pack === parsed.pack;
+       }) : null;
+       const key = inv ? inv.color + '|' + inv.pack : varStr;
+       if (!grouped[key]) grouped[key] = {
+         color: inv ? inv.color : varStr,
+         pack: inv ? inv.pack : '',
+         reqQty: 0, inv: inv, key: key
+       };
+       grouped[key].reqQty += reqQty;
+     });
+     const packOrder = (S.settings && S.settings.packOrder) ||
+       ['2pk', '4pk', '4pk NoLanyard'];
+     const byPack = {};
+     Object.values(grouped).forEach(function(g) {
+       const p = g.inv ? g.inv.pack : '__UNMATCHED__';
+       if (!byPack[p]) byPack[p] = [];
+       byPack[p].push(g);
+     });
+     var COLOR_HEX_LOCAL = {
+       'Black':'#222','White':'#e5e5e5','Gray':'#9ca3af',
+       'Navy':'#1e3a5f','Red':'#ef4444','Royal Blue':'#2563eb',
+       'Forest Green':'#166534','Burgundy':'#7f1d1d',
+       'Purple':'#7c3aed','Pink':'#f472b6','Orange':'#f97316',
+       'Yellow':'#eab308','Brown':'#92400e','Tan':'#d97706',
+       'Teal':'#0d9488','Coral':'#f87171','Hot Pink':'#ec4899',
+       'Dark Blue':'#1e40af','Charcoal':'#4b5563','Blue':'#3b82f6',
+       'Green':'#16a34a','Gold':'#f59e0b','Metallic Red':'#dc2626'
+     };
+     var html = '';
+     var short = 0, out = 0;
+     var allPacks = packOrder.concat(['__UNMATCHED__']);
+     allPacks.forEach(function(pack) {
+       var items = byPack[pack];
+       if (!items || !items.length) return;
+       var isUnmatched = pack === '__UNMATCHED__';
+       var headerLabel = isUnmatched ? 'UNMATCHED VARIANTS' : pack.toUpperCase();
+       var headerColor = isUnmatched ? 'var(--yellow)' : '#3fc5e7';
+       html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:' + headerColor + ';padding:10px 0 6px;border-bottom:1px solid var(--border);margin-bottom:8px;margin-top:12px">' + headerLabel + '</div>';
+       items.sort(function(a, b) {
+         if (b.reqQty !== a.reqQty) return b.reqQty - a.reqQty;
+         var ai = S.colorOrder ? S.colorOrder.indexOf(a.color) : -1;
+         var bi = S.colorOrder ? S.colorOrder.indexOf(b.color) : -1;
+         return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+       });
+       items.forEach(function(g) {
+         var stKey = 'pick_' + g.key.replace(/[^a-zA-Z0-9]/g, '_');
+         var isChecked = sessionStorage.getItem(stKey) === 'true';
+         var op = isChecked ? '0.5' : '1';
+         var dotColor = COLOR_HEX_LOCAL[g.color] || '#888';
+         if (isUnmatched) {
+           html += '<div style="background:var(--surface2);border:1px solid var(--border);padding:10px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;opacity:' + op + ';margin-bottom:6px">';
+           html += '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1">';
+           html += '<input type="checkbox" onchange="togglePickChk(this,\'' + stKey + '\')" ' + (isChecked ? 'checked' : '') + ' style="width:18px;height:18px;accent-color:var(--green)">';
+           html += '<div style="width:12px;height:12px;border-radius:50%;background:#888;flex-shrink:0"></div>';
+           html += '<span style="font-weight:600">' + g.color + '</span>';
+           html += '</label>';
+           html += '<div style="display:flex;align-items:center;gap:10px">';
+           html += '<span class="badge badge-yellow">NO MATCH</span>';
+           html += '<div style="background:var(--bg);padding:6px 14px;border-radius:6px;font-size:18px;font-weight:700;color:var(--green)">&times;' + g.reqQty + '</div>';
+           html += '</div></div>';
+         } else {
+           var isOut = g.inv && g.inv.stock === 0;
+           var isShort = g.inv && g.reqQty > g.inv.stock && g.inv.stock > 0;
+           if (isOut) out++;
+           if (isShort) short++;
+           var cColor = isOut ? 'var(--red)' : isShort ? 'var(--yellow)' : 'var(--text)';
+           var bg = isOut ? '#3d1515' : isShort ? '#3d2e00' : 'var(--surface2)';
+           var brd = isOut ? '#7a2929' : isShort ? '#7a5c00' : 'var(--border)';
+           var stockVal = g.inv ? g.inv.stock : 0;
+           var stockHtml = isOut ? 'stock: 0 <span class="badge badge-red">OUT</span>' : isShort ? 'stock: ' + stockVal + ' <span class="badge badge-yellow">SHORT</span>' : 'stock: ' + stockVal;
+           html += '<div style="background:' + bg + ';border:1px solid ' + brd + ';padding:10px 12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;opacity:' + op + ';transition:opacity 0.2s;margin-bottom:6px">';
+           html += '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1">';
+           html += '<input type="checkbox" onchange="togglePickChk(this,\'' + stKey + '\')" ' + (isChecked ? 'checked' : '') + ' style="width:18px;height:18px;accent-color:var(--green)">';
+           html += '<div style="width:12px;height:12px;border-radius:50%;flex-shrink:0;background:' + dotColor + ';border:1px solid rgba(255,255,255,0.15)"></div>';
+           html += '<div><div style="color:' + cColor + ';font-weight:700">' + g.color + '</div>';
+           html += '<div style="color:var(--muted);font-size:11px">' + stockHtml + '</div></div>';
+           html += '</label>';
+           html += '<div style="background:var(--bg);padding:6px 14px;border-radius:6px;font-size:18px;font-weight:700;color:var(--green)">&times;' + g.reqQty + '</div>';
+           html += '</div>';
+         }
+       });
+     });
+     wrap.innerHTML = html || '<div style="color:var(--muted);padding:12px">No variants to display</div>';
+     sum.innerHTML = 'To pull: <b>' + totalToPull + '</b> items &middot; ' +
+       (short ? '<b style="color:var(--yellow)">' + short + ' SHORT</b>' : '0 SHORT') +
+       ' &middot; ' +
+       (out ? '<b style="color:var(--red)">' + out + ' OUT</b>' : '0 OUT');
+   }
+
+   function togglePickMode() {
+     const isPick = document.body.classList.toggle('picking-mode');
+     const btn = getEl('pick-mode-btn');
+     if (isPick) {
+       btn.innerText = 'Exit Picking ✖';
+       document.getElementById('pick-list-wrap').style.display = 'block';
+       document.getElementById('pick-toggle-btn').style.display = 'none';
+     } else {
+       btn.innerText = 'Enter Picking Mode 🔍';
+       document.getElementById('pick-toggle-btn').style.display = 'inline-block';
+     }
+     renderPickList(); // re-render to update opacity based on mode
+   }
+
+   function togglePickListVis() {
+     const wrap = document.getElementById('pick-list-wrap');
+     const btn = document.getElementById('pick-toggle-btn');
+     if (wrap.style.display === 'none') { wrap.style.display = 'block'; btn.innerText = 'Collapse'; }
+     else { wrap.style.display = 'none'; btn.innerText = 'Expand'; }
+   }
+
+   function togglePickList() {
+     const wrap = document.getElementById('pick-list-wrap');
+     const chevron = document.getElementById('pick-list-chevron');
+     if (wrap.style.display === 'none') {
+       wrap.style.display = 'block';
+       if (chevron) chevron.style.transform = 'rotate(0deg)';
+     } else {
+       wrap.style.display = 'none';
+       if (chevron) chevron.style.transform = 'rotate(-90deg)';
+     }
+   }
+
+   function togglePickingMode() {
+     document.body.classList.toggle('picking-mode');
+     const btn = document.getElementById('pick-mode-btn');
+     if (btn) {
+       if (document.body.classList.contains('picking-mode')) {
+         btn.textContent = 'Exit Picking Mode';
+       } else {
+         btn.textContent = 'Picking Mode';
+       }
+     }
+   }
+
+   function togglePickChk(el, stKey) {
+     sessionStorage.setItem(stKey, el.checked);
+     if (!document.body.classList.contains('picking-mode')) {
+       el.closest('div').style.opacity = el.checked ? '0.5' : '1';
+     }
+   }
+
+   const printedFiles = new Set();
+   const slipPrinted = new Set();
+
+   function updatePrintSection() {
+     const list = document.getElementById('print-list');
+     const badge = document.getElementById('print-badge');
+     if (!list) return;
+     if (!S.labelFiles || !S.labelFiles.length) {
+       list.innerHTML = '<i style="color:var(--muted);font-size:13px">No label files uploaded yet</i>';
+       if (badge) { badge.textContent = ''; badge.className = 'badge hidden'; }
+       return;
+     }
+     const total = S.labelFiles.length;
+     const done = S.labelFiles.filter(lf => printedFiles.has(lf.name)).length;
+     if (badge) {
+       badge.classList.remove('hidden');
+       if (done === total) { badge.textContent = 'All Printed'; badge.className = 'badge badge-green'; }
+       else { badge.textContent = 'Printed ' + done + '/' + total; badge.className = 'badge ' + (done > 0 ? 'badge-yellow' : 'badge-red'); }
+     }
+     list.innerHTML = S.labelFiles.map(lf => {
+       const printed = printedFiles.has(lf.name);
+       const nm = lf.name.length > 38 ? '...' + lf.name.slice(-35) : lf.name;
+       const count = (lf.trackings || []).length;
+       const sn = lf.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+       return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface2);border-radius:6px;margin-bottom:6px;border:1px solid ' + (printed ? 'var(--green)' : 'var(--border)') + '">' +
+         '<span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">&#128206; ' + nm + '</span>' +
+         '<span style="font-size:11px;color:var(--muted);white-space:nowrap">' + count + ' label' + (count!==1?'s':'') + '</span>' +
+         (lf.data ? '<button class="btn" style="padding:4px 12px;font-size:12px" onclick="printLabelFile(\'' + sn + '\')">&#128424; Print</button>' : '<span style="font-size:11px;color:var(--muted)">re-upload</span>') +
+         '<input type="checkbox" ' + (printed?'checked':'') + ' style="width:20px;height:20px;cursor:pointer;accent-color:var(--green)" onchange="togglePrinted(\'' + sn + '\',this.checked,\'label\')">' +
+         '</div>';
+     }).join('');
+   }
+
+   function printLabelFile(name) {
+     const lf = (S.labelFiles||[]).find(f => f.name === name);
+     if (!lf || !lf.data) return;
+     const blob = new Blob([lf.data], {type:'application/pdf'});
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement('a');
+     a.href = url; a.target = '_blank'; a.click();
+     setTimeout(() => URL.revokeObjectURL(url), 3000);
+     printedFiles.add(name);
+     updatePrintSection();
+   }
+
+   function togglePrinted(name, checked, type) {
+     if (type === 'label') {
+       if (checked) printedFiles.add(name); else printedFiles.delete(name);
+       updatePrintSection();
+     } else {
+       if (checked) slipPrinted.add(name); else slipPrinted.delete(name);
+       updateSlipPrintSection();
+     }
+   }
+
+   function updateSlipPrintSection() {
+     const list = document.getElementById('slips-list');
+     if (!list) return;
+     if (!S.uspsSlips || !S.uspsSlips.length) {
+       list.innerHTML = '<i style="color:var(--muted);font-size:13px">No USPS slips uploaded yet</i>';
+       const hdr = document.getElementById('slips-badge');
+       if (hdr) { hdr.textContent = ''; hdr.className = 'badge hidden'; }
+       return;
+     }
+     const total = S.uspsSlips.length;
+     const done = S.uspsSlips.filter(s => slipPrinted.has(s.name)).length;
+     const badge = document.getElementById('slips-badge');
+     if (badge) {
+       badge.classList.remove('hidden');
+       if (done === total) { badge.textContent = 'All Printed'; badge.className = 'badge badge-green'; }
+       else { badge.textContent = 'Printed ' + done + '/' + total; badge.className = 'badge ' + (done > 0 ? 'badge-yellow' : 'badge-red'); }
+     }
+     list.innerHTML = S.uspsSlips.map(slip => {
+       const printed = slipPrinted.has(slip.name);
+       const nm = slip.name.length > 38 ? '...' + slip.name.slice(-35) : slip.name;
+       const sn = slip.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+       return '<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface2);border-radius:6px;margin-bottom:6px;border:1px solid ' + (printed?'var(--green)':'var(--border)') + '">' +
+         '<span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">&#128206; ' + nm + '</span>' +
+         '<button class="btn" style="padding:4px 12px;font-size:12px" onclick="printSlipFile(\'' + sn + '\')">&#128424; Print</button>' +
+         '<input type="checkbox" ' + (printed?'checked':'') + ' style="width:20px;height:20px;cursor:pointer;accent-color:var(--green)" onchange="togglePrinted(\'' + sn + '\',this.checked,\'slip\')">' +
+         '</div>';
+     }).join('');
+   }
+
+   function printSlipFile(name) {
+     const slip = (S.uspsSlips||[]).find(s => s.name === name);
+     if (!slip || !slip.data) return;
+     const blob = new Blob([slip.data], {type:'application/pdf'});
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement('a');
+     a.href = url; a.target = '_blank'; a.click();
+     setTimeout(() => URL.revokeObjectURL(url), 3000);
+     slipPrinted.add(name);
+     updateSlipPrintSection();
+   }
+
+   async function toggleVault() {
+     const panel = getEl('vault-panel');
+     if (panel.classList.contains('open')) {
+       panel.classList.remove('open');
+       getEl('vault-toggle-btn').textContent = '\uD83D\uDCC1 Browse Vault';
+       return;
+     }
+     getEl('vault-status').textContent = 'Loading...';
+     panel.innerHTML = '';
+     try {
+       const r = await fetch('/api/vault');
+       const data = await r.json();
+       if (!data.dates || !data.dates.length) {
+         panel.innerHTML = '<i style="color:var(--muted);font-size:12px">No archived files yet</i>';
+       } else {
+         let html = '';
+         data.dates.forEach((d, dIdx) => {
+           const isToday = dIdx === 0;
+           const dateClass = isToday ? 'vault-date-today' : 'vault-date-old';
+           const dateStyle = isToday ? 'border: 1px solid rgba(63, 197, 231, 0.3);' : '';
+           
+           html += '<div class="' + dateClass + '" style="' + dateStyle + ' margin-bottom:16px;padding:12px;border-radius:8px;background:rgba(45,31,66,0.3)">';
+           
+           // Load All Today button (only for today)
+           if (isToday) {
+             html += '<button class="btn btn-accent" style="width:100%;margin-bottom:12px;padding:10px;font-size:12px" ' +
+               'onclick="loadAllToday(\'' + d.date + '\')">' +
+               '📂 Load All Today\'s Files</button>';
+           }
+           
+           // Date header with chevron
+           html += '<div style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:8px;user-select:none" ' +
+             'onclick="this.parentElement.querySelector(\'.vault-files-' + dIdx + '\').classList.toggle(\'hidden\')">' +
+             '<span style="color:var(--accent);font-size:11px;transition:transform 0.2s;display:inline-block" ' +
+             'id="vault-chevron-' + dIdx + '">' + (isToday ? '▼' : '▶') + '</span>' +
+             '<span style="font-size:12px;font-weight:600;color:var(--text)">' + d.date + '</span>' +
+             '</div>';
+           
+           // Files container (hidden for non-today dates)
+           html += '<div class="vault-files-' + dIdx + '" style="' + (isToday ? '' : 'display:none;') + '">';
+           
+           // Group by type
+           const labels = d.files.filter(f => f.type === 'labels');
+           const manifests = d.files.filter(f => f.type === 'csv');
+           const slips = d.files.filter(f => f.type === 'slips');
+           
+           // Labels section
+           if (labels.length > 0) {
+             html += '<div style="margin-top:8px">' +
+               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📄 Shipping Labels</div>';
+             labels.forEach((f, idx) => {
+               const sizeKb = (f.size / 1024).toFixed(0);
+               const safePath = JSON.stringify(f.path);
+               const safeName = JSON.stringify(f.name);
+               html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;' +
+                 'background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.15);margin-bottom:4px">' +
+                 '<input type="checkbox" id="file-label-' + dIdx + '-' + idx + '" data-path="' + f.path + '" data-name="' + f.name + '" style="cursor:pointer;accent-color:var(--accent)">' +
+                 '<label for="file-label-' + dIdx + '-' + idx + '" style="flex:1;cursor:pointer;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+                 f.name + '</label>' +
+                 '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
+                 '</div>';
+             });
+             html += '<button class="btn" style="width:100%;padding:6px;font-size:11px;margin-top:6px" ' +
+               'onclick="loadGroupFiles(\'label-' + dIdx + '\',\'labels\',' + dIdx + ')">Load Selected</button></div>';
+           }
+           
+           // Manifests section
+           if (manifests.length > 0) {
+             html += '<div style="margin-top:12px">' +
+               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📋 CSV</div>';
+             manifests.forEach((f, idx) => {
+               const sizeKb = (f.size / 1024).toFixed(0);
+               const safePath = JSON.stringify(f.path);
+               const safeName = JSON.stringify(f.name);
+               html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;' +
+                 'background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.15);margin-bottom:4px">' +
+                 '<input type="checkbox" id="file-manifest-' + dIdx + '-' + idx + '" data-path="' + f.path + '" data-name="' + f.name + '" style="cursor:pointer;accent-color:var(--accent)">' +
+                 '<label for="file-manifest-' + dIdx + '-' + idx + '" style="flex:1;cursor:pointer;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+                 f.name + '</label>' +
+                 '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
+                 '</div>';
+             });
+             html += '<button class="btn" style="width:100%;padding:6px;font-size:11px;margin-top:6px" ' +
+               'onclick="loadGroupFiles(\'manifest-' + dIdx + '\',\'csv\',' + dIdx + ')">Load Selected</button></div>';
+           }
+           
+           // Slips section
+           if (slips.length > 0) {
+             html += '<div style="margin-top:12px">' +
+               '<div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📦 Manifest Slips</div>';
+             slips.forEach((f, idx) => {
+               const sizeKb = (f.size / 1024).toFixed(0);
+               const safePath = JSON.stringify(f.path);
+               const safeName = JSON.stringify(f.name);
+               html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;' +
+                 'background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.15);margin-bottom:4px">' +
+                 '<input type="checkbox" id="file-slip-' + dIdx + '-' + idx + '" data-path="' + f.path + '" data-name="' + f.name + '" style="cursor:pointer;accent-color:var(--accent)">' +
+                 '<label for="file-slip-' + dIdx + '-' + idx + '" style="flex:1;cursor:pointer;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+                 f.name + '</label>' +
+                 '<span style="color:var(--muted);font-size:11px;white-space:nowrap">' + sizeKb + ' KB</span>' +
+                 '</div>';
+             });
+             html += '<button class="btn" style="width:100%;padding:6px;font-size:11px;margin-top:6px" ' +
+               'onclick="loadGroupFiles(\'slip-' + dIdx + '\',\'slips\',' + dIdx + ')">Load Selected</button></div>';
+           }
+           
+           html += '</div></div>';
+         });
+         panel.innerHTML = html;
+       }
+       getEl('vault-status').textContent = '';
+       panel.classList.add('open');
+       getEl('vault-toggle-btn').textContent = '\u2715 Close Vault';
+     } catch(e) {
+       getEl('vault-status').textContent = 'Error loading vault';
+       console.error('Vault load error:', e);
+     }
+   }
+
+   function loadGroupFiles(groupId, fileType, dateIdx) {
+     const checkboxes = document.querySelectorAll('input[id^="file-' + fileType.substring(0, fileType.length - 1) + '-' + dateIdx + '"]');
+     const filesToLoad = [];
+     checkboxes.forEach(cb => {
+       if (cb.checked) {
+         const label = cb.nextElementSibling.textContent.trim();
+         filesToLoad.push({label, checkbox: cb});
+       }
+     });
+     if (filesToLoad.length === 0) {
+       showToast('No files selected', 'warn');
+       return;
+     }
+     filesToLoad.forEach(item => {
+       item.checkbox.click();
+     });
+     showToast('Loading ' + filesToLoad.length + ' file(s)...', 'info');
+   }
+
+   async function loadAllToday(date) {
+     const checkboxes = document.querySelectorAll('.vault-files-0 input[type="checkbox"]');
+     if (!checkboxes.length) { showToast('No files found for today', 'warn'); return; }
+     let count = 0;
+     for (const cb of checkboxes) {
+       const filePath = cb.getAttribute('data-path');
+       const fileName = cb.getAttribute('data-name');
+       if (filePath && fileName) {
+         await loadVaultFile(filePath, fileName, true);
+         count++;
+       }
+     }
+     showToast('Loaded ' + count + ' file(s) for ' + date, 'success');
+   }
+
+   async function loadVaultFile(path, name, silent = false) {
+     getEl('vault-status').textContent = 'Loading ' + name + '...';
+     try {
+       const r = await fetch('/api/vault/file/' + encodeURIComponent(path).replace('%2F', '/'));
+       if (!r.ok) throw new Error('Fetch failed: ' + r.status);
+       const buf = await r.arrayBuffer();
+       const ext = name.split('.').pop().toLowerCase();
+       const mime = ext === 'pdf' ? 'application/pdf' : 'text/csv';
+       const file = new File([buf], name, {type: mime});
+       await handleFiles([file]);
+       getEl('vault-status').textContent = name + ' loaded';
+       if (!silent) toggleVault();
+     } catch(e) {
+       getEl('vault-status').textContent = 'Failed to load ' + name;
+       console.error('loadVaultFile error:', e);
+     }
+   }
+
+   function clearFilesAndScans() {
+     document.title = 'ShipKit — PRINTZ&GIGGLEZ';
+     batchStartTime = null;
+     if (deadlineInterval) { clearInterval(deadlineInterval); deadlineInterval = null; }
+     const bsl = document.getElementById('batch-start-label');
+     if (bsl) bsl.textContent = '';
+     const db2 = document.getElementById('deadline-banner');
+     if (db2) db2.style.display = 'none';
+     const sl = document.getElementById('scan-log');
+     if (sl) sl.innerHTML = '<i style="color:var(--muted)">No packages scanned yet</i>';
+     S.labelFiles = [];
+     S.uspsSlips = [];
+     S.csvFiles = [];
+     APP_STATE.trackingsToScan.clear();
+     APP_STATE.scanned = [];
+     APP_STATE.variantsToPick = {};
+     APP_STATE.csvOrders = [];
+     APP_STATE.csvLoaded = false;
+     APP_STATE.labelsLoaded = false;
+     APP_STATE.slipsLoaded = false;
+     getEl('recon-banner').innerHTML = '';
+     updateScanUI();
+   }
+
+   function armScanner() {
+     const i = getEl('scan-input');
+     i.focus();
+   }
+   
+   setInterval(() => {
+     if(document.activeElement === getEl('scan-input')) {
+        const btn = getEl('arm-scanner-btn');
+        btn.classList.add('pulse');
+        btn.innerText = 'Scanner Armed 🔴';
+     } else if(getEl('arm-scanner-btn')) {
+        getEl('arm-scanner-btn').classList.remove('pulse');
+        getEl('arm-scanner-btn').innerText = 'Arm Scanner';
+     }
+   }, 500);
+
+   function handleScan(val) {
+     const tk = normT(val);
+     getEl('scan-input').value = '';
+     if (!tk) return;
+     
+     if (APP_STATE.scanned.find(s => s.tracking === tk)) {
+       beep('error'); speak('Duplicate'); return;
+     }
+     
+     // Determine pile
+     const expected = APP_STATE.trackingsToScan.has(tk);
+     const zone = expected ? S.settings.zoneNames.primary : S.settings.zoneNames.secondary;
+     
+     APP_STATE.scanned.push({ tracking: tk, zone: zone, date: new Date().toISOString(),
+       variant: (APP_STATE.csvOrders||[]).find(o=>o.tracking===tk)?.variant || 'Unknown' });
+     
+     beep('done');
+     if (!expected) speak('Clerk');
+     else speak('One'); // Simulate pile allocation
+     
+     // Check if done
+     if (APP_STATE.scanned.filter(s => s.zone === S.settings.zoneNames.primary).length >= S.labelFiles ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0), 0) : 0) {
+        speak('All clear');
+     }
+     updateScanUI();
+     document.title = APP_STATE.scanned.length + '/' + (APP_STATE.trackingsToScan ? APP_STATE.trackingsToScan.size : 0) + ' — PRINTZ&GIGGLEZ';
+     renderScanLog();
+   }
+
+   let logViewMode = 'variant';
+
+   function setLogView(mode) {
+     logViewMode = mode;
+     ['variant','tracking','product'].forEach(m => {
+       const btn = document.getElementById('log-tab-'+m);
+       if (btn) btn.className = 'btn' + (m === mode ? ' btn-active' : '');
+     });
+     renderScanLog();
+   }
+
+   function renderScanLog() {
+     const el = document.getElementById('scan-log');
+     if (!el) return;
+     if (!APP_STATE.scanned.length) {
+       el.innerHTML = '<i style="color:var(--muted)">No packages scanned yet</i>';
+       return;
+     }
+     const rows = [...APP_STATE.scanned].reverse().map(s => {
+       let label = s.tracking;
+       if (logViewMode === 'variant') label = s.variant || 'Unknown';
+       if (logViewMode === 'product') label = s.product || s.variant || s.tracking;
+       const time = s.date ? new Date(s.date).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
+       const zoneColor = s.zone === S.settings.zoneNames?.secondary ? 'var(--yellow)' : 'var(--green)';
+       return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">' +
+         '<span>' + label + '</span>' +
+         '<span style="display:flex;gap:8px">' +
+         '<span style="color:'+zoneColor+';font-size:11px">' + (s.zone||'') + '</span>' +
+         '<span style="color:var(--muted);font-size:11px">' + time + '</span>' +
+         '</span></div>';
+     });
+     el.innerHTML = rows.join('');
+   }
+
+   function exportScans() {
+     const lines = ['Tracking,Zone,Variant,Time'];
+     APP_STATE.scanned.forEach(s => {
+       lines.push([s.tracking, s.zone||'', s.variant||'', s.date||''].join(','));
+     });
+     const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement('a');
+     a.href = url;
+     a.download = 'shipkit_scan_' + new Date().toISOString().slice(0,10) + '.csv';
+     a.click();
+     setTimeout(() => URL.revokeObjectURL(url), 3000);
+   }
+
+   function startBatchTimer() {
+     if (!batchStartTime) {
+       batchStartTime = Date.now();
+     }
+     updateBatchTimer();
+     if (deadlineInterval) clearInterval(deadlineInterval);
+     deadlineInterval = setInterval(updateBatchTimer, 60000);
+   }
+
+   function updateBatchTimer() {
+     const el = document.getElementById('batch-start-label');
+     if (!el || !batchStartTime) return;
+     const elapsed = Date.now() - batchStartTime;
+     const hrs = Math.floor(elapsed / 3600000);
+     const mins = Math.floor((elapsed % 3600000) / 60000);
+     let color = 'var(--muted)';
+     if (hrs >= 4) color = 'var(--yellow)';
+     if (hrs >= 8) color = 'var(--red)';
+     el.style.color = color;
+     el.textContent = 'Batch started ' + (hrs > 0 ? hrs+'h ' : '') + mins + 'm ago';
+
+     // Deadline banner
+     const banner = document.getElementById('deadline-banner');
+     if (!banner || !S.settings.carrierCloseTime) return;
+     const [closeH, closeM] = (S.settings.carrierCloseTime || '17:00').split(':').map(Number);
+     const travel = S.settings.travelMinutes || 30;
+     const now = new Date();
+     const deadline = new Date();
+     deadline.setHours(closeH, closeM - travel, 0, 0);
+     const diffMs = deadline - now;
+     const diffH = Math.floor(diffMs / 3600000);
+     const diffM = Math.floor((diffMs % 3600000) / 60000);
+
+     if (diffMs < 0) {
+       banner.style.display = 'block';
+       banner.style.background = '#3d1515';
+       banner.style.color = 'var(--red)';
+       banner.textContent = '⚠ OVERDUE — Carrier close time has passed';
+     } else if (diffMs < 7200000) {
+       banner.style.display = 'block';
+       banner.style.background = diffMs < 3600000 ? '#3d1515' : '#3d2e00';
+       banner.style.color = diffMs < 3600000 ? 'var(--red)' : 'var(--yellow)';
+       banner.textContent = '🕐 ' + (diffH > 0 ? diffH+'h ' : '') + diffM + 'm until carrier close — Ship today';
+     } else {
+       banner.style.display = 'none';
+     }
+
+     const pillBadge = document.getElementById('sla-pill-badge');
+     if (pillBadge) {
+       const banner = document.getElementById('deadline-banner');
+       if (!banner || banner.style.display === 'none') {
+         pillBadge.className = 'badge badge-green';
+         pillBadge.textContent = 'Safe';
+         pillBadge.classList.remove('hidden');
+       } else {
+         const txt = banner.textContent || '';
+         if (txt.includes('URGENT') || txt.includes('OVERDUE')) {
+           pillBadge.className = 'badge badge-red';
+           pillBadge.textContent = 'Overdue';
+         } else {
+           pillBadge.className = 'badge badge-yellow';
+           pillBadge.textContent = 'Ship Today';
+         }
+         pillBadge.classList.remove('hidden');
+       }
+     }
+   }
+
+   function showModal(title, bodyHTML, buttons) {
+     let m = document.getElementById('sk-modal');
+     if (!m) {
+       m = document.createElement('div');
+       m.id = 'sk-modal';
+       m.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center;';
+       m.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;min-width:320px;max-width:520px;width:90%">' +
+         '<h3 id="sk-modal-title" style="margin-bottom:12px"></h3>' +
+         '<div id="sk-modal-body" style="margin-bottom:20px"></div>' +
+         '<div id="sk-modal-btns" style="display:flex;gap:8px;justify-content:flex-end"></div></div>';
+       document.body.appendChild(m);
+     }
+     document.getElementById('sk-modal-title').textContent = title;
+     document.getElementById('sk-modal-body').innerHTML = bodyHTML;
+     const btnsEl = document.getElementById('sk-modal-btns');
+     btnsEl.innerHTML = '';
+     buttons.forEach(b => {
+       const btn = document.createElement('button');
+       btn.textContent = b.label;
+       btn.className = 'btn ' + (b.cls || '');
+       btn.onclick = () => { m.style.display = 'none'; b.action && b.action(); };
+       btnsEl.appendChild(btn);
+     });
+     m.style.display = 'flex';
+   }
+
+   function handleSmartShip() {
+     const readyCount = APP_STATE.scanned.length;
+     const expectedCount = S.labelFiles ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0), 0) : 0;
+     const hasCommitted = S.batches && S.batches.length > 0;
+
+     if (readyCount === 0 && hasCommitted) {
+       showModal('Ship & Save All',
+         '<p>Archive <b>' + S.batches.length + ' batch(es)</b> to History and reset for tomorrow?</p>' +
+         '<p style="font-size:12px;color:var(--muted)">Inventory and History will update.</p>' +
+         '<div style="margin-top:12px;padding:10px 12px;border-radius:8px;background:rgba(92,224,208,0.08);border:1px solid rgba(92,224,208,0.2);font-size:12px;color:var(--accent)">📷 Take a packing photo before sealing — tap to confirm you\'re ready</div>',
+         [{ label: 'Cancel', cls: '' },
+          { label: 'Ship & Save All', cls: 'btn-green', action: () => archiveSession() }]);
+       return;
+     }
+     const missingCount = Math.max(0, expectedCount - readyCount);
+     if (readyCount > 0 && missingCount === 0) {
+       showModal('Commit Batch', '<p>Commit <b>' + readyCount + '</b> scanned packages?</p>',
+         [{ label: 'Cancel', cls: '' },
+          { label: 'Commit', cls: 'btn-green', action: () => commitBatch(false) }]);
+     } else if (readyCount > 0 && missingCount > 0) {
+       showModal('Partial Batch',
+         '<div style="background:#3d2e00;border:1px solid #7a5c00;border-radius:6px;padding:16px;margin-bottom:12px;text-align:center">' +
+         '<div style="font-size:28px;font-weight:700;color:var(--yellow)">⏸ ' + missingCount + '</div>' +
+         '<div style="color:var(--yellow)">packages going ON HOLD</div></div>' +
+         '<p style="font-size:13px;color:var(--muted)">' + readyCount + ' scanned will commit. ' + missingCount + ' unscanned go to hold.</p>',
+         [{ label: 'Cancel', cls: '' },
+          { label: 'Commit + Hold Missing', cls: 'btn-accent', action: () => commitBatch(true) }]);
+     } else if (readyCount === 0 && (APP_STATE.labelsLoaded || APP_STATE.csvLoaded)) {
+       archiveSession();
+     }
+   }
+
+   function commitBatch(autoHold) {
+     const bId = Date.now().toString(36) + Math.random().toString(36).slice(2,4);
+     const timeStr = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+     const scannedSet = new Set(APP_STATE.scanned.map(s => s.tracking));
+     // Capture missing BEFORE clearing scan state
+     const missingTrackings = [];
+     if (APP_STATE.trackingsToScan) {
+       APP_STATE.trackingsToScan.forEach(t => { if (!scannedSet.has(t)) missingTrackings.push(t); });
+     }
+     // Decrement inventory per scanned variant
+     const variantCounts = {};
+     APP_STATE.scanned.forEach(s => {
+       const v = s.variant || 'Unknown';
+       variantCounts[v] = (variantCounts[v] || 0) + 1;
+     });
+     Object.entries(variantCounts).forEach(([varStr, qty]) => {
+       const inv = S.inventory.find(i =>
+         varStr.toLowerCase().includes(i.color.toLowerCase()) &&
+         varStr.toLowerCase().includes(i.pack.toLowerCase()));
+       if (inv) {
+         inv.stock = Math.max(0, inv.stock - qty);
+         const dk = inv.color+'|'+inv.pack;
+         S.todayDelta[dk] = (S.todayDelta[dk]||0) + qty;
+       }
+     });
+     // Add missing to hold
+     if (autoHold) {
+       missingTrackings.forEach(t => {
+         const csvMatch = (APP_STATE.csvOrders||[]).find(o => o.tracking === t);
+         const vLabel = csvMatch ? csvMatch.variant : 'Unknown';
+         S.held.push({ id: Date.now()+Math.random(), type:'inventory_hold', tracking:t,
+           variantKey:vLabel, variantLabel:vLabel,
+           heldAt:new Date().toISOString().slice(0,10),
+           orderDate: csvMatch ? csvMatch.orderDate : '', batchId:bId });
+       });
+     }
+     S.batches.push({ id:bId, committedAt:timeStr, isoDate:new Date().toISOString(),
+       packages:[...APP_STATE.scanned], holdCount:missingTrackings.length,
+       variantCounts, manifestCount:APP_STATE.scanned.filter(s=>s.zone!==S.settings.zoneNames?.secondary).length,
+       clerkCount:APP_STATE.scanned.filter(s=>s.zone===S.settings.zoneNames?.secondary).length });
+     APP_STATE.scanned = []; APP_STATE.variantsToPick = {};
+     if (APP_STATE.trackingsToScan) APP_STATE.trackingsToScan.clear();
+     saveS('inventory'); saveS('todayDelta'); saveS('held'); saveS('batches');
+     updateScanUI(); renderInvTable(); updateInvBadge();
+     showCelebration(APP_STATE.scanned.length + ' packages shipped!');
+   }
+
+   function renderBatchCards() {
+     const el = document.getElementById('batch-cards');
+     if (!el) return;
+     if (!S.batches || !S.batches.length) { el.innerHTML = ''; return; }
+     const prim = (S.settings.zoneNames && S.settings.zoneNames.primary) || 'Sort Zone 1';
+     const sec = (S.settings.zoneNames && S.settings.zoneNames.secondary) || 'Clerk Counter';
+     let out = '';
+     S.batches.forEach(function(b, i) {
+       const vPills = Object.entries(b.variantCounts || {})
+         .map(function(e) { return '<span style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2px 10px;font-size:11px">' + e[0] + ' x' + e[1] + '</span>'; })
+         .join(' ');
+       const holdCount = (S.held||[]).filter(function(h) { return h.batchId === b.id; }).length;
+       const holdBadge = holdCount > 0 ? '<span style="background:#3d2e00;color:var(--yellow);border-radius:12px;padding:2px 8px;font-size:11px">on hold: ' + holdCount + '</span>' : '';
+       const slipBtns = (b.slips||[]).map(function(sl,si) {
+         return '<button class="btn" style="padding:2px 8px;font-size:11px;margin-right:4px" onclick="downloadBatchSlip(' + JSON.stringify(b.id) + ',' + si + ')">Slip ' + (si+1) + '</button>';
+       }).join('');
+       out += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px">';
+       out += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+       out += '<b>Batch ' + (i+1) + ' - ' + (b.committedAt||'') + '</b>';
+       out += '<div style="display:flex;gap:6px;align-items:center">' + holdBadge;
+       out += '<button class="btn" style="padding:3px 10px;font-size:11px;color:var(--red)" onclick="undoBatch(' + JSON.stringify(b.id) + ')">Undo</button>';
+       out += '</div></div>';
+       out += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
+       out += '<div style="background:rgba(0,200,100,0.08);border:1px solid rgba(0,200,100,0.25);border-radius:6px;padding:8px">';
+       out += '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">' + prim + '</div>';
+       out += '<div style="font-size:22px;font-weight:700;color:var(--green)">' + (b.manifestCount||0) + '</div></div>';
+       out += '<div style="background:rgba(255,180,0,0.08);border:1px solid rgba(255,180,0,0.25);border-radius:6px;padding:8px">';
+       out += '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">' + sec + '</div>';
+       out += '<div style="font-size:22px;font-weight:700;color:var(--yellow)">' + (b.clerkCount||0) + '</div></div></div>';
+       out += '<div style="display:flex;gap:6px;flex-wrap:wrap' + (slipBtns ? ';margin-bottom:8px' : '') + '">' + vPills + '</div>';
+       if (slipBtns) out += '<div style="display:flex;gap:4px;margin-top:4px">' + slipBtns + '</div>';
+       out += '<div id="carrier-ts-' + b.id + '" style="margin-top:10px;font-size:11px;color:var(--muted)">';
+       out += b.carrierAcceptedAt ? '✓ Carrier accepted: ' + b.carrierAcceptedAt : '';
+       out += '</div>';
+       out += '<div style="display:flex;gap:8px;margin-top:8px">';
+       out += '<button class="btn" style="font-size:11px;padding:4px 10px" onclick="markCarrierAccepted(\'' + b.id + '\')">✓ Carrier Accepted</button>';
+       out += '<button class="btn" style="font-size:11px;padding:4px 10px" onclick="printCarrierCard(\'' + b.id + '\')">🖨 Print Carrier Card</button>';
+       out += '</div>';
+       out += '</div>';
+     });
+     el.innerHTML = out;
+   }
+
+   function downloadBatchSlip(batchId, slipIdx) {
+     const batch = S.batches.find(b => b.id === batchId);
+     if (!batch || !batch.slips || !batch.slips[slipIdx]) return;
+     downloadSlip(null, batch.slips[slipIdx].name);
+   }
+
+   function markCarrierAccepted(batchId) {
+     const b = S.batches.find(x => x.id === batchId);
+     if (!b) return;
+     b.carrierAcceptedAt = new Date().toLocaleTimeString();
+     saveS('batches');
+     renderBatchCards();
+     showToast('Carrier acceptance recorded', 'success');
+   }
+
+   function printCarrierCard(batchId) {
+     showToast('Print Carrier Card — coming soon', 'info');
+   }
+
+      function undoBatch(batchId) {
+     const idx = S.batches.findIndex(b => b.id === batchId);
+     if (idx === -1) return;
+     const batch = S.batches[idx];
+     Object.entries(batch.variantCounts||{}).forEach(([varStr,qty]) => {
+       const inv = S.inventory.find(i => varStr.toLowerCase().includes(i.color.toLowerCase()) && varStr.toLowerCase().includes(i.pack.toLowerCase()));
+       if (inv) { inv.stock += qty; const dk = inv.color+'|'+inv.pack; S.todayDelta[dk] = Math.max(0,(S.todayDelta[dk]||0)-qty); }
+     });
+     S.held = S.held.filter(h => h.batchId !== batchId);
+     S.batches.splice(idx, 1);
+     saveS('inventory'); saveS('todayDelta'); saveS('held'); saveS('batches');
+     const el = document.getElementById('batch-cards');
+     if (el) { el.style.background='#3d1515'; setTimeout(()=>{ el.style.background=''; }, 400); }
+     renderBatchCards(); renderHeldQueue(); renderInvTable(); updateInvBadge();
+   }
+
+   function renderHeldQueue() {
+     const panel = document.getElementById('hold-subpanel');
+     const list = document.getElementById('hold-list');
+     const badge = document.getElementById('hold-count-badge');
+     const clearBtn = document.getElementById('hold-clear-btn');
+     if (!panel || !list) return;
+     const count = S.held ? S.held.length : 0;
+     if (badge) { badge.style.display = count > 0 ? 'inline-block' : 'none'; badge.textContent = count; }
+     if (clearBtn) clearBtn.style.display = count > 0 ? 'inline-block' : 'none';
+     if (!count) { list.innerHTML = '<i style="color:var(--muted)">No packages on hold</i>'; return; }
+     let out = '';
+     S.held.forEach(function(h) {
+       const isCancelled = h.type === 'cancellation';
+       let deadlineHtml = '';
+       if (h.orderDate && !isCancelled) {
+         const dl = new Date(h.orderDate);
+         dl.setDate(dl.getDate() + (S.settings.slaBusinessDays||2) + 2);
+         const diffMs = dl - Date.now();
+         const diffH = Math.floor(diffMs / 3600000);
+         const diffD = Math.floor(diffH / 24);
+         let dlColor = 'var(--green)', dlText = diffD + 'd left';
+         if (diffMs < 0) { dlColor = 'var(--red)'; dlText = 'OVERDUE'; }
+         else if (diffH < 6) { dlColor = 'var(--red)'; dlText = diffH + 'h left'; }
+         else if (diffH < 24) { dlColor = 'var(--yellow)'; dlText = diffH + 'h left'; }
+         deadlineHtml = '<span style="font-size:11px;color:' + dlColor + ';font-weight:600">' + dlText + '</span>';
+       }
+       const cancelBadge = isCancelled ? '<span style="background:#3d1515;color:var(--red);border-radius:12px;padding:2px 8px;font-size:11px">CANCELLED</span>' : '';
+       const hid = JSON.stringify(String(h.id));
+       const acts = isCancelled
+         ? '<button class="btn" style="padding:3px 10px;font-size:11px" onclick="dismissHeld(' + hid + ')">Dismiss</button>'
+         : '<button class="btn btn-accent" style="padding:3px 10px;font-size:11px" onclick="markHeldShipped(' + hid + ')">Mark Shipped</button>' +
+           '<button class="btn" style="padding:3px 10px;font-size:11px;color:var(--muted)" onclick="logCancellationHeld(' + hid + ')">Cancel</button>';
+       out += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">';
+       out += '<div><div style="font-size:13px;font-weight:500">' + (h.variantLabel||'Unknown') + '</div>';
+       out += '<div style="font-size:11px;color:var(--muted);display:flex;gap:8px;margin-top:2px">';
+       out += '<span>...' + (h.tracking||'').slice(-8) + '</span><span>' + (h.heldAt||'') + '</span>' + deadlineHtml + '</div></div>';
+       out += '<div style="display:flex;gap:6px;align-items:center">' + cancelBadge + acts + '</div></div>';
+     });
+     list.innerHTML = out;
+   }
+
+   function toggleHoldPanel() {
+     const wrap = document.getElementById('hold-list-wrap');
+     const chev = document.getElementById('hold-chevron');
+     if (!wrap) return;
+     const hidden = wrap.style.display === 'none';
+     wrap.style.display = hidden ? 'block' : 'none';
+     if (chev) chev.textContent = hidden ? 'v' : '>';
+   }
+
+   function logCancellationNew() {
+     showModal('Log Cancellation',
+       '<p style="margin-bottom:10px">Paste the tracking number:</p>' +
+       '<input type="text" id="cancel-track-input" placeholder="Tracking number" style="width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;margin-bottom:10px">' +
+       '<input type="text" id="cancel-variant-input" placeholder="Variant (e.g. Black 4pk)" style="width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;margin-bottom:10px">' +
+       '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="cancel-rev-new"> Reverse inventory deduction</label>',
+       [{ label:'Cancel', cls:'' },
+        { label:'Log Cancellation', cls:'btn-red', action:()=>{
+          const tracking = (document.getElementById('cancel-track-input')||{}).value||'';
+          const variant = (document.getElementById('cancel-variant-input')||{}).value||'Unknown';
+          if (!tracking.trim()) return;
+          const existing = S.held.find(h => h.tracking === tracking.trim());
+          if (existing) { existing.type = 'cancellation'; }
+          else { S.held.push({id:Date.now()+Math.random(),type:'cancellation',tracking:tracking.trim(),variantKey:variant,variantLabel:variant,heldAt:new Date().toISOString().slice(0,10),orderDate:''}); }
+          if ((document.getElementById('cancel-rev-new')||{}).checked) {
+            const inv = S.inventory.find(i => variant.toLowerCase().includes(i.color.toLowerCase()) && variant.toLowerCase().includes(i.pack.toLowerCase()));
+            if (inv) inv.stock++;
+          }
+          saveS('held'); saveS('inventory');
+          renderHeldQueue(); renderInvTable(); updateInvBadge();
+        }}]);
+   }
+
+   function markHeldShipped(heldId) {
+     const item = S.held.find(h=>h.id==heldId);
+     if(!item) return;
+     const inv = S.inventory.find(i=>(item.variantKey||'').toLowerCase().includes(i.color.toLowerCase())&&(item.variantKey||'').toLowerCase().includes(i.pack.toLowerCase()));
+     if(inv&&inv.stock>0){inv.stock--;S.todayDelta[inv.color+'|'+inv.pack]=(S.todayDelta[inv.color+'|'+inv.pack]||0)+1;}
+     S.shippedT.add(item.tracking);
+     S.held = S.held.filter(h=>h.id!=heldId);
+     saveS('inventory'); saveS('todayDelta'); saveS('held');
+     renderHeldQueue(); renderInvTable(); updateInvBadge();
+   }
+
+   function dismissHeld(heldId) {
+     S.held = S.held.filter(h=>h.id!=heldId);
+     saveS('held').then(()=>renderHeldQueue());
+   }
+
+   function logCancellationHeld(heldId) {
+     const item = S.held.find(h=>h.id==heldId);
+     if(!item) return;
+     showModal('Log Cancellation',
+       '<p>Mark <b>'+(item.variantLabel||'Unknown')+'</b> as cancelled?</p>' +
+       '<p style="font-size:12px;color:var(--muted)">Tracking: …'+(item.tracking||'').slice(-8)+'</p>' +
+       '<label style="display:flex;gap:8px;align-items:center;margin-top:10px">' +
+       '<input type="checkbox" id="cancel-rev-inv"> Reverse inventory if already counted</label>',
+       [{ label:'Keep as Hold', cls:'' },
+        { label:'Mark Cancelled', cls:'btn-red', action:()=>{
+          if(document.getElementById('cancel-rev-inv')?.checked){
+            const inv=S.inventory.find(i=>(item.variantKey||'').toLowerCase().includes(i.color.toLowerCase())&&(item.variantKey||'').toLowerCase().includes(i.pack.toLowerCase()));
+            if(inv) inv.stock++;
+          }
+          const idx=S.held.findIndex(h=>h.id==heldId);
+          if(idx>-1) S.held[idx].type='cancellation';
+          saveS('inventory'); saveS('held');
+          renderHeldQueue(); renderInvTable();
+        }}]);
+   }
+
+   function archiveSession() {
+     if (S.batches.length === 0) return;
+     const totalPackages = S.batches.reduce(function(sum,b) { return sum + (b.manifestCount||0) + (b.clerkCount||0); }, 0);
+     const batchCount = S.batches.length;
+     const tDate = todayStr();
+     S.sessions.unshift({date:tDate, batches:S.batches.slice(), totalPackages:totalPackages});
+     S.batches = []; S.todayDelta = {};
+     clearFilesAndScans();
+     saveS('sessions'); saveS('batches'); saveS('todayDelta');
+     const flash = document.createElement('div');
+     flash.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:99999;display:flex;align-items:center;justify-content:center;';
+     const inner = document.createElement('div');
+     inner.style.cssText = 'text-align:center;padding:40px';
+     inner.innerHTML = '<div style="font-size:64px;margin-bottom:16px">&#127881;</div>' +
+       '<div style="font-size:36px;font-weight:700;color:var(--green);margin-bottom:8px">' + totalPackages + ' packages shipped</div>' +
+       '<div style="font-size:15px;color:var(--muted)">' + batchCount + ' batch' + (batchCount!==1?'es':'') + ' archived</div>' +
+       '<div style="font-size:14px;color:var(--muted);margin-top:12px">Great work. See you tomorrow.</div>';
+     const doneBtn = document.createElement('button');
+     doneBtn.className = 'btn btn-green';
+     doneBtn.style.cssText = 'margin-top:24px;padding:10px 32px;font-size:15px';
+     doneBtn.textContent = 'Done';
+     doneBtn.onclick = function() { flash.remove(); renderHistoryFeed(); switchTab('history'); };
+     inner.appendChild(doneBtn);
+     flash.appendChild(inner);
+     document.body.appendChild(flash);
+     setTimeout(function() { if (flash.parentNode) { flash.remove(); renderHistoryFeed(); switchTab('history'); } }, 8000);
+   }
+
+   function clearHolds() {
+     if (!S.held||!S.held.length) return;
+     showModal('Clear Hold Queue',
+       '<p>Remove all <b>'+S.held.length+'</b> items from the hold queue?</p>' +
+       '<p style="font-size:12px;color:var(--red)">This cannot be undone.</p>',
+       [{ label:'Cancel', cls:'' },
+        { label:'Clear All', cls:'btn-red', action:()=>{
+          S.held=[]; saveS('held').then(()=>renderHeldQueue());
+        }}]);
+   }
+
+   function todayStr() {
+       return new Date().toISOString().split('T')[0];
+   }
+   
+   // --- INVENTORY LOGIC ---
+   function applyToAll() {
+     const bulkInput = document.getElementById('bulk-qty-input');
+     const n = bulkInput ? parseInt(bulkInput.value) : NaN;
+     if (isNaN(n) || n < 0) { showToast('Enter a quantity first', 'warn'); return; }
+     S.inventory.forEach(inv => { inv.stock = n; });
+     saveS('inventory'); renderInvTable(); updateInvBadge();
+     showToast('All SKUs set to ' + n, 'success');
+   }
+
+   function applyToSelected() {
+     const bulkInput = document.getElementById('bulk-qty-input');
+     const n = bulkInput ? parseInt(bulkInput.value) : NaN;
+     if (isNaN(n) || n < 0) { showToast('Enter a quantity first', 'warn'); return; }
+     const checked = [...document.querySelectorAll('.inv-chk:checked')].map(cb => cb.value);
+     if (!checked.length) { showToast('Select rows first', 'warn'); return; }
+     S.inventory.forEach(inv => {
+       if (checked.includes(inv.color + '|' + inv.pack)) inv.stock = n;
+     });
+     saveS('inventory'); renderInvTable(); updateInvBadge();
+     showToast(checked.length + ' SKUs set to ' + n, 'success');
+   }
+
+   function invAction(type) {
+     const chks = type === 'selected' ? [...document.querySelectorAll('.inv-chk:checked')] : [];
+     const keys = type === 'selected' ? chks.map(c => c.value) : S.inventory.map(i => i.color+'|'+i.pack);
+     if (keys.length === 0) return;
+     const label = type==='selected' ? 'selected items' : 'ALL items';
+     showModal('Set Stock — '+label,
+       '<input type="number" id="inv-action-qty" placeholder="Enter quantity" style="width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px">',
+       [{ label:'Cancel', cls:'' },
+        { label:'Apply', cls:'btn-green', action:()=>{
+          const qty = parseInt(document.getElementById('inv-action-qty')?.value||'');
+          if (!qty && qty!==0) return;
+          S.inventory.forEach(i=>{ if(keys.includes(i.color+'|'+i.pack)) i.stock=qty; });
+          saveS('inventory'); renderInvTable(); updateInvBadge();
+        }}]);
+   }
+
+   function updateStock(color, pack, delta, setExact = false) {
+     const item = S.inventory.find(i => i.color === color && i.pack === pack);
+     if (!item) return;
+     item.stock = setExact ? parseInt(delta||0) : item.stock + parseInt(delta||0);
+     if (item.stock < 0) item.stock = 0;
+     saveS('inventory');
+     renderInvTable();
+     updateInvBadge();
+   }
+
+   function setStockFromInput(color, pack, val) {
+     const n = parseInt(val);
+     if (isNaN(n) || n < 0) {
+       showToast('Enter a valid number', 'warn');
+       return;
+     }
+     updateStock(color, pack, n, true);
+     showToast(color + ' ' + pack + ' set to ' + n, 'success');
+   }
+
+   function quickAddStock(color, pack, inputId) {
+     const val = getEl(inputId).value;
+     if (val) updateStock(color, pack, val, false);
+   }
+
+   function startEditStock(color, pack, id) {
+     const el = getEl(id);
+     const stock = el.innerText;
+     el.innerHTML = `<input type="number" id="${id}-in" value="${stock}" style="width:60px;padding:2px">`;
+     const inp = getEl(`${id}-in`);
+     inp.focus();
+     inp.select();
+     inp.onblur = () => updateStock(color, pack, inp.value, true);
+     inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') renderInvTable(); };
+   }
+
+   function updateInvBadge() {
+     const lowCount = S.inventory.filter(i => i.stock <= S.settings.lowThreshold).length;
+     const b = getEl('inv-badge');
+     if (lowCount > 0) { b.classList.remove('hidden'); b.innerText = '!'; }
+     else b.classList.add('hidden');
+   }
+
+   function renderInvTable() {
+     let html = '';
+     let total = 0, inStock = 0, low = 0, out = 0;
+     
+     const grouped = {};
+     S.colorOrder.forEach(c => grouped[c] = S.inventory.filter(i => i.color === c).sort((a,b) => S.settings.packOrder.indexOf(a.pack) - S.settings.packOrder.indexOf(b.pack)));
+     
+     S.inventory.forEach(i => {
+       total += i.stock;
+       if (i.stock > 0) inStock++;
+       if (i.stock === 0) out++;
+       else if (i.stock <= S.settings.lowThreshold) low++;
+     });
+
+     getEl('inv-stats-bar').innerHTML = `Total Units: ${total} &middot; SKUs In Stock: ${inStock} &middot; Low Stock: ${low} &middot; Out of Stock: ${out}`;
+
+     S.colorOrder.forEach((color, gIdx) => {
+       const items = grouped[color];
+       if (!items || !items.length) return;
+       html += `
+         <tbody data-color="${color}">
+           <tr class="inv-group-header">
+             <td colspan="6"><span class="drag-handle">⠿</span> <b>${color}</b></td>
+           </tr>
+       `;
+       items.forEach((it, iIdx) => {
+         const k = `${color}|${it.pack}`;
+         const dtId = `stk-${gIdx}-${iIdx}`;
+         const badg = it.stock === 0 ? '<span class="badge badge-red">OUT</span>' : (it.stock <= S.settings.lowThreshold ? '<span class="badge badge-yellow">LOW</span>' : '');
+         const delta = S.todayDelta[k] ? `<span class="badge badge-amber">${S.todayDelta[k] > 0 ? '+'+S.todayDelta[k] : S.todayDelta[k]}</span>` : '';
+          const safeId = (color + '-' + it.pack).replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\-]/g, '');
+         html += `
+           <tr class="inv-row">
+             <td style="width:30px"><input type="checkbox" class="inv-chk" value="${k}"></td>
+             <td style="width:120px">● ${color}</td>
+             <td style="width:60px">${it.pack}</td>
+             <td style="width:140px; white-space:nowrap">
+               <button class="qty-btn" onclick="updateStock('${color}','${it.pack}', -1)">−</button>
+               <span class="stock-num" id="${dtId}" onclick="startEditStock('${color}','${it.pack}', '${dtId}')">${it.stock}</span>
+               <button class="qty-btn" onclick="updateStock('${color}','${it.pack}', 1)">+</button>
+             </td>
+                          <td style="width:60px">${delta}</td>
+             <td style="text-align:right">${badg}</td>
+           </tr>
+         `;
+       });
+       html += `</tbody>`;
+     });
+     
+     const tab = getEl('inv-table');
+     if(tab) tab.innerHTML = html;
+     updateInvBadge();
+   }
+   
+   // --- HISTORY & SPRINT 3 LOGIC ---
+   function renderHistoryFeed() {
+     let html = '';
+     if (!S.sessions || S.sessions.length === 0) {
+       html = '<div class="card" style="text-align:center;color:var(--muted)">No history available yet</div>';
+     } else {
+       // Loop last 7 days for Free tier
+       const viewable = S.settings.proMode ? S.sessions : S.sessions.slice(0, 7);
+       
+       viewable.forEach(sess => {
+         const d = new Date(sess.date + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
+         const bCount = sess.batches.length;
+         
+         // Aggregate counts
+         let totalPackages = 0, manifest = 0, clerk = 0;
+         let variants = {}; let slipsHTML = '';
+         
+         sess.batches.forEach((b, idx) => {
+           totalPackages += b.scans.length;
+           manifest += b.scans.filter(s => s.zone === S.settings.zoneNames.primary).length;
+           clerk += b.scans.filter(s => s.zone === S.settings.zoneNames.secondary).length;
+           
+           if(b.variants) {
+             Object.entries(b.variants).forEach(([v, q]) => { variants[v] = (variants[v]||0) + q; });
+           }
+           if(b.slipFileName) {
+               slipsHTML += `<span style="cursor:pointer; color:var(--accent); text-decoration:underline; margin-right:12px" onclick="downloadSlip('${b.slipFileId}', '${b.slipFileName}')">📄 ${b.slipFileName}</span>`;
+           }
+         });
+         
+         const vTags = Object.entries(variants).map(([v,q]) => `<span class="badge" style="background:var(--surface);border:1px solid var(--border);margin-right:6px">${v} &times; ${q}</span>`).join('');
+         
+         html += `
+           <div class="card">
+             <div class="flex justify-between align-center" style="margin-bottom:8px">
+               <b style="font-size:15px; color:var(--accent)">${d}</b>
+               <span class="badge" style="background:var(--surface2)">${bCount} batch${bCount>1?'es':''}</span>
+             </div>
+             <p style="margin-bottom:8px; font-size:15px">${totalPackages} packages (Manifest: ${manifest} &middot; Clerk: ${clerk})</p>
+             <div style="margin-bottom:12px; line-height:2">${vTags}</div>
+             <div style="margin-bottom:12px; background:var(--surface2); padding:8px; border-radius:6px; font-size:13px">${slipsHTML || '<i>No USPS Slips attached</i>'}</div>
+             <div style="font-size:12px; color:var(--muted)">
+               Committed batches starting at ${sess.batches[0]?.timestamp || 'Unknown'}
+             </div>
+           </div>
+         `;
+       });
+       
+       if (!S.settings.proMode && S.sessions.length > 7) {
+         html += `<div style="text-align:center;color:var(--muted);margin-top:16px"><i>${S.sessions.length - 7} older sessions hidden &mdash; upgrade to Pro</i></div>`;
+       }
+     }
+     const feed = getEl('history-feed');
+     if(feed) feed.innerHTML = html;
+   }
+
+   async function downloadSlip(fileId, name) {
+     const buf = await API.getFile(name);
+     if (!buf) { console.warn('Slip file not found:', name); return; }
+     const blob = new Blob([buf], {type:'application/pdf'});
+     const url = URL.createObjectURL(blob);
+     const anchor = document.createElement('a');
+     anchor.href = url; anchor.target = '_blank'; anchor.click();
+     setTimeout(() => URL.revokeObjectURL(url), 3000);
+   }
+
+   function updateTemplates(v) {
+     const p = v.trim() || '[TRACKING]';
+     const inr = `Hi! Thanks so much for reaching out and I’m so sorry to hear your package hasn’t arrived yet. I checked the tracking for your order (${p}) and USPS indicates that it was delivered. Could you double check with neighbors or your local post office? If they confirm it's lost, please start a request with TikTok support referencing the tracking number so we can get this resolved!`;
+     const inad = `Hi! Thanks for bringing this to our attention. I’m so sorry the item wasn’t as expected. Could you please send over a few photos of what you received so we can investigate what went wrong with order (${p})? Once we have those, we'll get it sorted immediately!`;
+     getEl('tpl-inr').value = inr;
+     getEl('tpl-inad').value = inad;
+   }
+
+   function copyTpl(id) {
+     const t = getEl('tpl-'+id).value;
+     navigator.clipboard.writeText(t).then(() => {
+       const b = event.target;
+       const old = b.innerText;
+       b.innerText = '✓ Copied!';
+       b.classList.add('btn-green');
+       setTimeout(() => { b.innerText = old; b.classList.remove('btn-green'); }, 2000);
+     });
+   }
+
+   async function logReturn(e) {
+     e.preventDefault();
+     const order = getEl('ret-order').value.trim();
+     const sku = getEl('ret-sku').value.trim();
+     const reason = getEl('ret-reason').value;
+     const res = getEl('ret-res').value;
+     const loss = parseFloat(getEl('ret-loss').value) || 0;
+
+     const ret = {
+        id: Date.now().toString(36),
+        date: new Date().toISOString(),
+        order, sku, reason, res, loss
+     };
+
+     if (!S.returns) S.returns = [];
+     S.returns.push(ret);
+     await saveS('returns');
+     e.target.reset();
+     updateReturnsUI();
+   }
+
+   function updateReturnsUI() {
+     const list = getEl('returns-list');
+     if (!list) return;
+
+     if (!S.returns || S.returns.length === 0) {
+       list.innerHTML = '<div style="color:var(--muted); text-align:center">No returns logged yet.</div>';
+       return;
+     }
+
+     // Fraud detection logic: 2+ "not_received" for same SKU in 30 days
+     const thirtyDaysAgo = new Date();
+     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+     
+     const recentINR = S.returns.filter(r => r.reason === 'not_received' && new Date(r.date) > thirtyDaysAgo);
+     const inrBySku = {};
+     recentINR.forEach(r => inrBySku[r.sku] = (inrBySku[r.sku] || 0) + 1);
+
+     let totalLoss = 0;
+     let html = '';
+     // Sort newest first
+     [...S.returns].sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(r => {
+       totalLoss += r.loss;
+       let fraudIcon = (r.reason === 'not_received' && inrBySku[r.sku] >= 2) ? ' <span title="High risk SKU: Multiple INRs recently">🚨</span>' : '';
+       
+       html += `
+         <div class="flex justify-between align-center" style="padding:8px 0; border-bottom:1px solid var(--border)">
+           <div>
+             <b style="color:var(--accent)">${r.order}</b> ${fraudIcon}<br>
+             <span style="font-size:12px; color:var(--muted)">${r.sku} &middot; ${r.reason} &middot; ${r.res}</span>
+           </div>
+           <div style="color:var(--red)">
+             ${r.loss > 0 ? '-$'+r.loss.toFixed(2) : ''}
+           </div>
+         </div>
+       `;
+     });
+
+     html = `<div style="margin-bottom:12px; font-weight:bold; color:var(--red)">Total Est. Loss: $${totalLoss.toFixed(2)}</div>` + html;
+     list.innerHTML = html;
+   }
+
+   // --- INITIALIZATION ---
+   async function initApp() {
+     try {
+       S.inventory   = await API.get('inventory')          || [];
+       S.colorOrder  = await API.get('color_order')        || [];
+       S.batches     = await API.get('batches')            || [];
+       S.held        = await API.get('held')               || [];
+       S.sessions    = await API.get('sessions')           || [];
+       S.settings    = await API.get('settings')           || {};
+       S.todayDelta  = await API.get('today_delta')        || {};
+       S.returns     = await API.get('returns')            || [];
+       const shipped = await API.get('shipped_trackings')  || [];
+       S.shippedT    = new Set(shipped);
+       S.labelFiles  = [];
+       S.uspsSlips   = [];
+
+       if (!S.inventory.length) {
+         S.inventory = DEFAULT_COLORS.flatMap(c => DEFAULT_PACKS.map(p => ({color:c, pack:p, stock:0})));
+         await saveS('inventory');
+       }
+       if (!S.colorOrder.length) { S.colorOrder = [...DEFAULT_COLORS]; await saveS('colorOrder'); }
+       if (!S.settings.carrierCloseTime) { S.settings = {...DEFAULT_SETTINGS}; await saveS('settings'); }
+       if (!S.settings.variantAliases) {
+         S.settings.variantAliases = {...DEFAULT_SETTINGS.variantAliases};
+         await saveS('settings');
+       }
+
+       switchTab('scan');
+
+       window.addEventListener('offline', () => {
+         const b = document.getElementById('offline-badge');
+         if (b) b.style.display = 'inline-block';
+       });
+       window.addEventListener('online', () => {
+         const b = document.getElementById('offline-badge');
+         if (b) b.style.display = 'none';
+       });
+     } catch(e) {
+       console.error('initApp failed:', e);
+       document.getElementById('tab-content').innerHTML =
+         '<div style="padding:40px;text-align:center">' +
+         '<h2 style="color:var(--red)">Cannot connect to ShipKit server</h2>' +
+         '<p style="color:var(--muted)">Make sure run.bat is running, then reload this page.</p>' +
+         '<p style="font-size:12px;color:var(--muted)">' + e.message + '</p>' +
+         '<button class="btn btn-green" style="margin-top:16px" onclick="location.reload()">Retry</button>' +
+         '</div>';
+     }
+   }
+
+   // --- LIVE UI UPDATES ---
+   function updateScanUI() {
+     if(!getEl('step-upload-card')) return;
+     
+     // 1. Upload section & Checklists
+     let checks = '';
+
+     // Labels pill
+     if (APP_STATE.labelsLoaded) {
+       const labelTrackings = S.labelFiles
+         ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0),0)
+         : 0;
+       checks += '<div class="pill"><span>📄 Labels Loaded</span>' +
+         '<span class="badge badge-green">' + labelTrackings + ' total</span></div>';
+       if (S.labelFiles) {
+         S.labelFiles.forEach(lf => {
+           checks += '<div class="pill" style="margin-left:16px;opacity:0.8">' +
+             '<span style="font-size:11px">\u21b3 ' + lf.name + '</span>' +
+             '<span class="badge badge-green" style="font-size:10px">' +
+             (lf.trackings ? lf.trackings.length : 0) + '</span></div>';
+         });
+       }
+     }
+
+     // CSV pills
+     if (APP_STATE.csvLoaded && S.csvFiles && S.csvFiles.length) {
+       const totalOrders = S.csvFiles.reduce((a,cf)=>a+cf.orderCount,0);
+       checks += '<div class="pill"><span>📋 Manifest CSV' +
+         (S.csvFiles.length > 1 ? 's (' + S.csvFiles.length + ' files)' : ' Loaded') +
+         '</span><span class="badge badge-green">' + totalOrders + ' total</span>' +
+         '<span id="sla-pill-badge" class="badge hidden"></span></div>';
+       S.csvFiles.forEach(cf => {
+         checks += '<div class="pill" style="margin-left:16px;opacity:0.8">' +
+           '<span style="font-size:11px">\u21b3 ' + cf.name + '</span>' +
+           '<span class="badge badge-green" style="font-size:10px">' + cf.orderCount + '</span></div>';
+       });
+     } else if (APP_STATE.csvLoaded) {
+       const csvCount = APP_STATE.csvOrders ? APP_STATE.csvOrders.length : 0;
+       checks += '<div class="pill"><span>📋 Manifest CSV Loaded</span>' +
+         '<span class="badge badge-green">' + csvCount + ' total</span>' +
+         '<span id="sla-pill-badge" class="badge hidden"></span></div>';
+     }
+
+     // Manifest Slips pill
+     if (APP_STATE.slipsLoaded && S.uspsSlips && S.uspsSlips.length) {
+       const totalPkgs = S.uspsSlips.reduce((a,s)=>a+(s.packageCount||0),0);
+       checks += '<div class="pill"><span>📦 Manifest Slips (' +
+         S.uspsSlips.length + ' files)</span>' +
+         '<span class="badge badge-green">' +
+         (totalPkgs > 0 ? totalPkgs + ' total' : S.uspsSlips.length + ' slips') +
+         '</span></div>';
+       S.uspsSlips.forEach(slip => {
+         checks += '<div class="pill" style="margin-left:16px;opacity:0.8">' +
+           '<span style="font-size:11px">\u21b3 ' + slip.name + '</span>' +
+           (slip.packageCount ? '<span class="badge badge-green" style="font-size:10px">' +
+             slip.packageCount + '</span>' : '') +
+           '</div>';
+       });
+     }
+
+  const uploadBadge = document.getElementById('upload-status-badge');
+  if (uploadBadge) {
+    const hasFiles = APP_STATE.labelsLoaded ||
+      APP_STATE.csvLoaded || APP_STATE.slipsLoaded;
+    if (hasFiles) {
+      const parts = [];
+      if (APP_STATE.labelsLoaded) parts.push('Labels');
+      if (APP_STATE.csvLoaded) parts.push('CSV');
+      if (APP_STATE.slipsLoaded) parts.push('Slips');
+      uploadBadge.textContent = parts.join(' · ') + ' Loaded';
+      uploadBadge.className = 'badge badge-green';
+      uploadBadge.classList.remove('hidden');
+    } else {
+      uploadBadge.classList.add('hidden');
+    }
+  }
+
+     getEl('file-checklists').innerHTML = checks;
+     
+     if (APP_STATE.labelsLoaded || APP_STATE.csvLoaded) {
+       getEl('drop-zone').classList.add('hidden');
+       getEl('clear-scans-btn').classList.remove('hidden');
+       getEl('step-scan-card').classList.remove('disabled');
+     } else {
+       getEl('drop-zone').classList.remove('hidden');
+       getEl('clear-scans-btn').classList.add('hidden');
+       getEl('step-scan-card').classList.add('disabled');
+     }
+     
+     // 2. Pick list
+     if (APP_STATE.csvLoaded) {
+       getEl('pick-list-sec').classList.remove('hidden');
+       renderPickList();
+     } else {
+       getEl('pick-list-sec').classList.add('hidden');
+     }
+
+     // 3. Pile cards (Manifest info)
+     const expected = S.labelFiles ? S.labelFiles.reduce((a,lf)=>a+(lf.trackings?lf.trackings.length:0), 0) : 0;
+     const manifestScans = APP_STATE.scanned.filter(s => s.zone === S.settings.zoneNames.primary).length;
+     const clerkScans = APP_STATE.scanned.filter(s => s.zone === S.settings.zoneNames.secondary).length;
+     
+     const manifestComplete = manifestScans > 0 && manifestScans >= expected;
+     const manifestClass = manifestComplete ? 'pile-card complete' : manifestScans > 0 ? 'pile-card urgency-yellow' : 'pile-card';
+     const clerkClass = clerkScans > 0 ? 'pile-card urgency-green' : 'pile-card';
+
+     getEl('pile-cards').innerHTML = `
+       <div class="${manifestClass}" style="flex:1; margin:0">
+         <div class="badge" style="margin-bottom:8px">${S.settings.zoneNames.primary}</div>
+         <div style="font-size:24px; font-weight:700; color:${manifestScans === expected && expected > 0 ? 'var(--green)' : 'var(--text)'}">${manifestScans} / ${expected}</div>
+       </div>
+       <div class="${clerkClass}" style="flex:1; margin:0">
+         <div class="badge" style="margin-bottom:8px">${S.settings.zoneNames.secondary}</div>
+         <div style="font-size:24px; font-weight:700">${clerkScans}</div>
+       </div>
+     `;
+     
+     getEl('scan-progress-text').innerText = `${APP_STATE.scanned.length} sorted`;
+     
+     // 4. Smart Ship Button
+     const btn = getEl('smart-ship-btn');
+     if (APP_STATE.scanned.length === 0) {
+       if (APP_STATE.labelsLoaded || APP_STATE.csvLoaded) {
+         btn.disabled = false;
+         btn.innerText = 'Ship & Save All';
+         btn.className = 'btn btn-green';
+       } else {
+         btn.disabled = true;
+         btn.innerText = 'Ship & Save';
+         btn.className = 'btn';
+       }
+     } else if (manifestScans < expected) {
+       btn.disabled = false;
+       btn.innerText = `Ship & Save — ${manifestScans}/${expected}`;
+       btn.className = 'btn btn-teal';
+     } else {
+       btn.disabled = false;
+       btn.innerText = `Ship & Save — ${manifestScans}/${expected}`;
+       btn.className = 'btn btn-green';
+     }
+     
+     // 5. Hold Subpanel + Batch Cards
+     renderHeldQueue();
+     renderBatchCards();
+
+     const dp = document.getElementById('daily-progress-text');
+     if (dp) {
+       const todayShipped = S.batches
+         ? S.batches.filter(b => b.shippedAt &&
+             b.shippedAt.startsWith(new Date().toISOString().slice(0,10))
+           ).reduce((sum, b) => sum + (b.totalPackages || 0), 0)
+         : 0;
+       const pending = APP_STATE.trackingsToScan
+         ? APP_STATE.trackingsToScan.size - APP_STATE.scanned.length
+         : 0;
+       dp.textContent = 'Today: ' + todayShipped + ' shipped' +
+         (pending > 0 ? ' · ' + pending + ' pending' : '');
+     }
+   }
+
+   function openSettings() {
+     document.getElementById('settings-modal').style.display = 'flex';
+     const zp = document.getElementById('settings-zone-primary');
+     const zs = document.getElementById('settings-zone-secondary');
+     if (zp) zp.value = (S.settings.zoneNames && 
+       S.settings.zoneNames.primary) || 'Manifest';
+     if (zs) zs.value = (S.settings.zoneNames && 
+       S.settings.zoneNames.secondary) || 'Clerk Counter';
+
+     const fmt = S.settings.printerFormat || '4x6';
+     setPrinter(fmt);
+     
+     // Populate alias UI
+     populateAliasColorSelect();
+     renderAliasPills();
+   }
+
+   function closeSettingsModal() {
+     const zp = document.getElementById('settings-zone-primary');
+     const zs = document.getElementById('settings-zone-secondary');
+     if (zp && zp.value.trim())
+       S.settings.zoneNames = S.settings.zoneNames || {};
+     if (zp && zp.value.trim())
+       S.settings.zoneNames.primary = zp.value.trim();
+     if (zs && zs.value.trim())
+       S.settings.zoneNames.secondary = zs.value.trim();
+     saveS('settings');
+     document.getElementById('settings-modal').style.display='none';
+   }
+
+   document.addEventListener('DOMContentLoaded', initApp);
+   </script>
+
+   <div id="settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+     <div class="card" style="max-width:560px; width:90%; padding:24px; background:var(--bg); max-height:85vh; overflow-y:auto;">
+       <!-- Header with close X -->
+       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+         <h2 style="margin:0; font-size:20px;">Settings</h2>
+         <button onclick="closeSettingsModal()" style="background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; padding:4px 8px; border-radius:4px; transition:color 0.2s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--muted)'">&times;</button>
+       </div>
+       
+       <!-- Printer Format -->
+       <div style="margin-bottom:18px">
+         <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:8px;letter-spacing:0.5px">LABEL FORMAT</label>
+         <div style="display:flex;gap:8px">
+           <button id="printer-4x6-btn" onclick="setPrinter('4x6')" class="btn" style="flex:1;font-size:12px">4×6 Thermal</button>
+           <button id="printer-8x11-btn" onclick="setPrinter('8x11')" class="btn" style="flex:1;font-size:12px">8.5×11 Standard</button>
+         </div>
+       </div>
+       
+       <!-- Zone Names - Side by Side -->
+       <div style="display:flex; gap:12px; margin-bottom:18px;">
+         <div style="flex:1">
+           <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:8px;letter-spacing:0.5px">PRIMARY ZONE NAME</label>
+           <input type="text" id="settings-zone-primary" placeholder="e.g. Manifest" style="width:100%">
+         </div>
+         <div style="flex:1">
+           <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:8px;letter-spacing:0.5px">SECONDARY ZONE NAME</label>
+           <input type="text" id="settings-zone-secondary" placeholder="e.g. Clerk Counter" style="width:100%">
+         </div>
+       </div>
+       
+       <!-- Divider -->
+       <div style="border-top:1px solid var(--border); margin:20px 0;"></div>
+       
+       <!-- VARIANT ALIASES Section -->
+       <div style="margin-bottom:18px">
+         <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px;letter-spacing:0.5px">VARIANT ALIASES</label>
+         <p style="font-size:11px;color:var(--muted);margin-bottom:12px;opacity:0.8">Map TikTok names → your inventory names</p>
+         
+         <!-- Alias Pills Container -->
+         <div id="alias-pills-container" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; min-height:36px;">
+           <span style="font-size:12px;color:var(--muted);font-style:italic">No aliases yet — add one below</span>
+         </div>
+         
+         <!-- Add Alias Form -->
+         <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+           <input type="text" id="alias-tiktok-input" placeholder="TikTok variant name..." style="flex:1; font-size:12px;">
+           <select id="alias-color-select" style="flex:1; font-size:12px;">
+             <option value="">Select color...</option>
+           </select>
+           <button class="btn btn-accent" onclick="addAlias()" style="padding:8px 14px; font-size:12px; flex-shrink:0;">+ Add</button>
+         </div>
+         
+         <!-- Helper text -->
+         <p style="font-size:10px;color:var(--muted);margin:0;opacity:0.7">TikTok names are case-insensitive. Example: 'charcoal' matches 'Charcoal, 4pk' in your CSV</p>
+       </div>
+       
+       <!-- Save & Close Button -->
+       <button class="btn btn-accent" style="width:100%; margin-top:16px; padding:12px;" onclick="closeSettingsModal()">Save & Close</button>
+     </div>
+   </div>
+   
+   <!-- PICK LIST COMPONENT -->
+   <div id="pick-list-container" class="pick-list-container" style="margin: 20px 12px;">
+     <!-- Header -->
+     <div class="pick-list-header">
+       <span class="pick-list-chevron" onclick="togglePickList()">▼</span>
+       <span class="pick-list-title">Pick List</span>
+       <span class="pick-list-summary" id="pick-summary">To pull: 41 items · 0 SHORT · 0 OUT</span>
+       <button class="pick-mode-btn" onclick="togglePickingMode()">Picking Mode</button>
+     </div>
+     
+     <!-- Progress Bar -->
+     <div class="pick-progress-wrapper">
+       <div class="pick-progress-track">
+         <div class="pick-progress-fill" id="pick-progress-fill" style="width: 0%"></div>
+       </div>
+       <div class="pick-progress-text" id="pick-progress-text">0 of 41 picked · 0%</div>
+     </div>
+     
+     <!-- List Wrapper -->
+     <div class="pick-list-wrapper" id="pick-list-wrapper">
+       <div id="pick-list-content"></div>
+     </div>
+   </div>
+   
+   <div id="celebration-overlay">
+     <div style="font-size:48px">🎉</div>
+     <div id="celebration-text">Batch Shipped!</div>
+     <div style="font-size:13px;color:var(--muted)">
+       Great work — packages are on their way
+     </div>
+   </div>
+   
+   <script>
+     // ── PICK LIST RENDERER ──
+     
+     const SAMPLE_GROUPS = [
+       {
+         packName: "2pk",
+         items: [
+           {color: "Black", colorHex: "#222", reqQty: 8, stock: 15, status: "ok", checkKey: "pick_Black_2pk"},
+           {color: "Red", colorHex: "#dc2626", reqQty: 5, stock: 3, status: "short", checkKey: "pick_Red_2pk"},
+           {color: "Blue", colorHex: "#2563eb", reqQty: 2, stock: 10, status: "ok", checkKey: "pick_Blue_2pk"}
+         ]
+       },
+       {
+         packName: "4pk",
+         items: [
+           {color: "Green", colorHex: "#059669", reqQty: 12, stock: 20, status: "ok", checkKey: "pick_Green_4pk"},
+           {color: "Navy", colorHex: "#1e40af", reqQty: 7, stock: 0, status: "out", checkKey: "pick_Navy_4pk"},
+           {color: "Purple", colorHex: "#7c3aed", reqQty: 4, stock: 8, status: "ok", checkKey: "pick_Purple_4pk"},
+           {color: "Gold", colorHex: "#d97706", reqQty: 1, stock: 5, status: "ok", checkKey: "pick_Gold_4pk"}
+         ]
+       },
+       {
+         packName: "UNMATCHED",
+         items: [
+           {color: "Charcoal", colorHex: null, reqQty: 3, stock: 0, status: "unmatched", checkKey: "pick_Charcoal_unmatched"},
+           {color: "Coral", colorHex: null, reqQty: 1, stock: 0, status: "unmatched", checkKey: "pick_Coral_unmatched"}
+         ]
+       }
+     ];
+     
+     let pickListState = {};
+     
+     function initPickList(groups = SAMPLE_GROUPS) {
+       groups.forEach(group => {
+         group.items.forEach(item => {
+           pickListState[item.checkKey] = false;
+         });
+       });
+       renderPickList(groups);
+     }
+     
+     function renderPickList(groups = SAMPLE_GROUPS) {
+       const content = document.getElementById('pick-list-content');
+       let html = '';
+       let totalItems = 0;
+       let shortCount = 0;
+       let outCount = 0;
+       
+       groups.forEach(group => {
+         const isUnmatched = group.packName === "UNMATCHED";
+         const headerClass = isUnmatched ? 'unmatched' : '';
+         const headerText = isUnmatched ? 'UNMATCHED VARIANTS' : group.packName.toUpperCase();
+         
+         const allCheckedInGroup = group.items.every(item => pickListState[item.checkKey]);
+         
+         html += `<div class="pick-group">
+           <div class="pick-group-header ${headerClass}">
+             ${headerText}
+             ${allCheckedInGroup && group.items.length > 0 ? '<span class="pick-group-complete-tag">✓ done</span>' : ''}
+           </div>`;
+         
+         group.items.forEach((item, idx) => {
+           totalItems += item.reqQty;
+           if (item.status === 'short') shortCount++;
+           if (item.status === 'out') outCount++;
+           
+           const isChecked = pickListState[item.checkKey];
+           const rowClass = `pick-row ${item.status}${isChecked ? ' checked' : ''}`;
+           const dotHtml = item.colorHex 
+             ? `<div class="pick-color-dot" style="background: ${item.colorHex}"></div>`
+             : `<div class="pick-color-dot" style="background: #666"></div>`;
+           
+           let badge = '';
+           if (item.status === 'short') badge = '<span class="pick-badge short">SHORT</span>';
+           else if (item.status === 'out') badge = '<span class="pick-badge out">OUT</span>';
+           else if (item.status === 'unmatched') badge = '<span class="pick-badge unmatched">NO MATCH</span>';
+           
+           html += `<div class="${rowClass}" onclick="togglePickRow(this, '${item.checkKey}')">
+             <input type="checkbox" class="pick-checkbox" ${isChecked ? 'checked' : ''} onchange="event.stopPropagation();">
+             ${dotHtml}
+             <div>
+               <div class="pick-color-name">${item.color}</div>
+               <div class="pick-stock-line">stock: ${item.stock}</div>
+             </div>
+             ${badge}
+             <span class="pick-qty-badge">×${item.reqQty}</span>
+           </div>`;
+         });
+         
+         html += '</div>';
+       });
+       
+       content.innerHTML = html || '<div class="pick-empty-state">Upload a manifest CSV to see the pick list</div>';
+       
+       // Update summary
+       document.getElementById('pick-summary').textContent = `To pull: ${totalItems} items · ${shortCount} SHORT · ${outCount} OUT`;
+       
+       updateProgressBar(groups);
+       attachPickRowListeners(groups);
+     }
+     
+     function togglePickRow(rowEl, checkKey) {
+       const checkbox = rowEl.querySelector('.pick-checkbox');
+       checkbox.checked = !checkbox.checked;
+       pickListState[checkKey] = checkbox.checked;
+       rowEl.classList.toggle('checked');
+       
+       if (checkbox.checked) {
+         rowEl.classList.add('checked');
+       } else {
+         rowEl.classList.remove('checked');
+       }
+       
+       updateProgressBar(SAMPLE_GROUPS);
+     }
+     
+     function updateProgressBar(groups = SAMPLE_GROUPS) {
+       let totalQty = 0;
+       let pickedQty = 0;
+       
+       groups.forEach(group => {
+         group.items.forEach(item => {
+           totalQty += item.reqQty;
+           if (pickListState[item.checkKey]) {
+             pickedQty += item.reqQty;
+           }
+         });
+       });
+       
+       const percentage = totalQty > 0 ? Math.round((pickedQty / totalQty) * 100) : 0;
+       const fill = document.getElementById('pick-progress-fill');
+       const text = document.getElementById('pick-progress-text');
+       
+       fill.style.width = percentage + '%';
+       
+       if (percentage === 100) {
+         fill.classList.add('complete');
+         text.textContent = 'All picked ✓';
+         text.style.color = 'var(--green)';
+       } else {
+         fill.classList.remove('complete');
+         text.textContent = `${pickedQty} of ${totalQty} picked · ${percentage}%`;
+         text.style.color = 'var(--muted)';
+       }
+     }
+     
+     function attachPickRowListeners(groups = SAMPLE_GROUPS) {
+       const rows = document.querySelectorAll('.pick-row');
+       rows.forEach(row => {
+         row.addEventListener('click', function(e) {
+           if (e.target.tagName !== 'INPUT') {
+             const checkbox = this.querySelector('.pick-checkbox');
+             checkbox.click();
+           }
+         });
+       });
+     }
+     
+     function togglePickList() {
+       const wrapper = document.getElementById('pick-list-wrapper');
+       const chevron = document.querySelector('.pick-list-chevron');
+       wrapper.classList.toggle('collapsed');
+       chevron.classList.toggle('collapsed');
+     }
+     
+     function togglePickingMode() {
+       document.body.classList.toggle('picking-mode');
+       const btn = document.querySelector('.pick-mode-btn');
+       if (btn) {
+         btn.textContent = document.body.classList.contains('picking-mode') ? 'Exit Picking Mode' : 'Picking Mode';
+       }
+     }
+     
+     // Initialize on load
+     document.addEventListener('DOMContentLoaded', function() {
+       initPickList(SAMPLE_GROUPS);
+     });
+   </script>
+

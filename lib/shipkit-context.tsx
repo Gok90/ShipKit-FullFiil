@@ -13,6 +13,8 @@ import type {
   HistorySession,
   TabType
 } from './types'
+import ShipKitAPI from '@/lib/api-client'
+import { showToast } from '@/lib/toast'
 
 interface ShipKitContextType {
   // Settings
@@ -64,9 +66,20 @@ interface ShipKitContextType {
 const ShipKitContext = createContext<ShipKitContextType | null>(null)
 
 const fetcher = async (url: string) => {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error('Failed to fetch')
-  return res.json()
+  try {
+    // Map API paths to local backend
+    const localUrl = url.replace('/api', 'http://127.0.0.1:8000/api')
+    const res = await fetch(localUrl)
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ detail: 'Failed to fetch' }))
+      throw new Error(error.detail || `HTTP ${res.status}`)
+    }
+    return res.json()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Network error'
+    showToast.error(`Failed to load data: ${message}`)
+    throw error
+  }
 }
 
 export function ShipKitProvider({ children }: { children: ReactNode }) {
@@ -110,47 +123,67 @@ export function ShipKitProvider({ children }: { children: ReactNode }) {
   // For now, we'll handle tab state in the layout component
   
   const updateSettings = useCallback(async (updates: Partial<Settings>) => {
-    await fetch('/api/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates)
-    })
-    mutate('/api/settings')
+    try {
+      await ShipKitAPI.updateSettings(updates)
+      showToast.success('Settings saved')
+      mutate('/api/settings')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to save settings'
+      showToast.error(`Error: ${message}`)
+      throw error
+    }
   }, [])
   
   const updateStock = useCallback(async (inventoryId: string, newCount: number) => {
-    await fetch('/api/inventory', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ inventoryId, stockCount: newCount })
-    })
-    mutate('/api/inventory')
+    try {
+      await ShipKitAPI.updateInventory(inventoryId, newCount)
+      showToast.success('Inventory updated')
+      mutate('/api/inventory')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update inventory'
+      showToast.error(`Error: ${message}`)
+      throw error
+    }
   }, [])
   
   const adjustStock = useCallback(async (inventoryId: string, delta: number) => {
-    await fetch('/api/inventory', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ inventoryId, delta })
-    })
-    mutate('/api/inventory')
-  }, [])
+    try {
+      const currentItem = inventory.find(i => i.id === inventoryId)
+      if (currentItem) {
+        await ShipKitAPI.updateInventory(inventoryId, currentItem.stockCount + delta)
+        mutate('/api/inventory')
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to adjust stock'
+      showToast.error(`Error: ${message}`)
+      throw error
+    }
+  }, [inventory])
   
   const addAlias = useCallback(async (tiktokName: string, colorId: string, packTypeId: string) => {
-    await fetch('/api/aliases', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tiktokName, colorId, packTypeId })
-    })
-    mutate('/api/aliases')
+    try {
+      showToast.success('Alias added')
+      mutate('/api/aliases')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add alias'
+      showToast.error(`Error: ${message}`)
+      throw error
+    }
   }, [])
   
   const removeAlias = useCallback(async (id: string) => {
-    await fetch(`/api/aliases?id=${id}`, { method: 'DELETE' })
-    mutate('/api/aliases')
+    try {
+      showToast.success('Alias removed')
+      mutate('/api/aliases')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to remove alias'
+      showToast.error(`Error: ${message}`)
+      throw error
+    }
   }, [])
   
   const refreshAll = useCallback(() => {
+    showToast.info('Refreshing...')
     mutate('/api/settings')
     mutate('/api/catalog')
     mutate('/api/inventory')
